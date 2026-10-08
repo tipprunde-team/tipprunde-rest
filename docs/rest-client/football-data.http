@@ -1,0 +1,15 @@
+# Testaufrufe football-data.org (Token aus Umgebungsvariable)
+@baseUrl = https://api.football-data.org/v4
+@token = {{$processEnv FOOTBALL_DATA_TOKEN}}
+
+### Bundesliga Info
+GET {{baseUrl}}/competitions/BL1
+X-Auth-Token: {{token}}
+
+### Bundesliga Spiele (ganze Saison)
+GET {{baseUrl}}/competitions/BL1/matches
+X-Auth-Token: {{token}}
+
+### Spiele eines Zeitraums (Spieltag 4)
+GET {{baseUrl}}/competitions/BL1/matches?dateFrom=2026-09-18&dateTo=2026-09-20
+X-Auth-Token: {{token}}
