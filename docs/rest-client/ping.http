@@ -1,0 +1,24 @@
+# REST Client (VS Code, Erweiterung "REST Client" von Huachao Mao)
+# Auf "Send Request" ueber der jeweiligen Zeile klicken. Backend vorher starten.
+
+@baseUrl = http://localhost:8080/api
+
+### 1 GET /api/ping ohne Token, erwartet 200 {"status":"ok"}
+GET {{baseUrl}}/ping
+
+### 2 Health-Check inkl. Datenbank, erwartet 200 {"status":"UP"}
+GET http://localhost:8080/actuator/health
+
+### 3 CORS-Preflight vom erlaubten Origin, erwartet 200 mit Access-Control-Allow-Origin
+OPTIONS {{baseUrl}}/ping
+Origin: http://localhost:5500
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: authorization
+
+### 4 CORS-Preflight von fremdem Origin, erwartet 403
+OPTIONS {{baseUrl}}/ping
+Origin: http://evil.example
+Access-Control-Request-Method: GET
+
+### 5 Unbekannter Pfad, erwartet 404
+GET {{baseUrl}}/gibtsnicht
