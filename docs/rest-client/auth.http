@@ -1,0 +1,50 @@
+# Login und Logout testen (Backend vorher starten)
+@baseUrl = http://localhost:8080/api
+
+### 1 Login ok, erwartet 200 mit token, expiresAt, user
+# @name login
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "test@tippseite.de",
+  "password": "Test1234!"
+}
+
+### 2 Falsches Passwort, erwartet 401 UNAUTHORIZED
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "test@tippseite.de",
+  "password": "falsch123"
+}
+
+### 3 Unbekannte E-Mail, erwartet dieselbe 401-Antwort
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "niemand@tippseite.de",
+  "password": "Test1234!"
+}
+
+### 4 Leere Felder, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "",
+  "password": ""
+}
+
+### 5 Logout mit Token aus Request 1, erwartet 204
+DELETE {{baseUrl}}/auth
+Authorization: Bearer {{login.response.body.token}}
+
+### 6 Logout ohne Token, erwartet 401
+DELETE {{baseUrl}}/auth
+
+### 7 Manipuliertes Token, erwartet 401
+DELETE {{baseUrl}}/auth
+Authorization: Bearer {{login.response.body.token}}x
