@@ -1,4 +1,4 @@
-package de.dhbw.tipprunde.controller;
+package com.mosbach.tipprunde.controller;
 
 import java.util.Map;
 

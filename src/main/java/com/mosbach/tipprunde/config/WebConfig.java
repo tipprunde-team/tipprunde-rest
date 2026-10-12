@@ -1,4 +1,4 @@
-package de.dhbw.tipprunde.config;
+package com.mosbach.tipprunde.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
