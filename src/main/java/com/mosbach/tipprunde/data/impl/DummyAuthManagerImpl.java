@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -24,13 +23,15 @@ public class DummyAuthManagerImpl implements AuthManager {
     private static final String TEST_EMAIL = "test@tippseite.de";
     private static final String TEST_USERNAME = "tester";
 
-    // Übergangslösung bis zur PasswordEncoder-Bean von Max
-    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-    private final String testPasswordHash = passwordEncoder.encode("Test1234!");
     private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
+    private final String testPasswordHash;
 
-    public DummyAuthManagerImpl(JwtService jwtService) {
+    // PasswordEncoder kommt als Bean aus PasswordConfig
+    public DummyAuthManagerImpl(JwtService jwtService, PasswordEncoder passwordEncoder) {
         this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
+        this.testPasswordHash = passwordEncoder.encode("Test1234!");
     }
 
     @Override
