@@ -14,11 +14,20 @@ Zugangsdaten stehen nie im Code oder Repo. Sie werden pro Person in der Eingabea
 setx DB_URL "jdbc:postgresql://HOST:PORT/defaultdb?sslmode=require"
 setx DB_USER "avnadmin"
 setx DB_PASSWORD "<Passwort aus der Privatnachricht>"
+setx JWT_SECRET "<gemeinsames Secret aus der Privatnachricht>"
 ```
 
 Danach das Terminal bzw. IntelliJ neu starten, damit die Variablen ankommen. Prüfen in `cmd` mit `echo %DB_URL%`, in PowerShell mit `$env:DB_URL`.
 
 Die aiven-Service-URI sieht so aus: `postgres://USER:PASSWORD@HOST:PORT/defaultdb?sslmode=require`. Für `DB_URL` wird daraus nur `jdbc:postgresql://HOST:PORT/defaultdb?sslmode=require`. Benutzer und Passwort kommen getrennt in `DB_USER` und `DB_PASSWORD`.
+
+`JWT_SECRET` signiert die Login-Tokens und muss mindestens 32 Zeichen lang sein. Alle im Team verwenden denselben Wert. Eine Person erzeugt ihn einmal (PowerShell) und teilt ihn privat:
+
+```powershell
+$b = New-Object byte[] 48
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b)
+[Convert]::ToBase64String($b)
+```
 
 Optional:
 
@@ -28,7 +37,7 @@ Optional:
 | `CORS_ALLOWED_ORIGINS` | erlaubte Frontend-Origins, kommagetrennt | `http://localhost:5500,http://127.0.0.1:5500` |
 | `FOOTBALL_DATA_TOKEN` | API-Key von football-data.org (später für den Spielplan-Import) | – |
 
-Fehlen `DB_URL`, `DB_USER` oder `DB_PASSWORD`, startet das Backend nicht. Typische Meldung: `'url' must start with "jdbc"`.
+Fehlen `DB_URL`, `DB_USER` oder `DB_PASSWORD`, startet das Backend nicht. Typische Meldung: `'url' must start with "jdbc"`. Fehlt `JWT_SECRET` oder ist es zu kurz, bricht der Start mit einer Meldung zu `JWT_SECRET` ab.
 
 ### Starten und testen
 
@@ -46,6 +55,24 @@ Im Browser prüfen:
 - http://localhost:8080/actuator/health liefert `{"status":"UP"}` (bei nicht erreichbarer Datenbank `DOWN`)
 
 Die API-Aufrufe zum Testen liegen für die VS-Code-Erweiterung REST Client in `docs/rest-client/`.
+
+## Datenbankschema auf aiven einspielen (pgAdmin)
+
+Das Schema liegt in `src/main/resources/db/schema.sql` und wird **nicht** automatisch beim Start ausgeführt. Es ist idempotent, kann also mehrfach laufen, ohne etwas kaputtzumachen (`CREATE ... IF NOT EXISTS`). Es legt `users`, `groups`, `group_members`, `matches` und `tips` an. Eine Token-Tabelle gibt es nicht, weil der Login über JWT zustandslos ist.
+
+1. In pgAdmin per Rechtsklick auf "Servers" den Server registrieren (Register > Server). Name z. B. `tipprunde-aiven`.
+2. Reiter "Connection": Host, Port, Maintenance database `defaultdb`, Username und Passwort aus der Privatnachricht eintragen.
+3. Reiter "SSL": SSL mode auf `require` stellen. Speichern.
+4. Unter dem Server die Datenbank `defaultdb` markieren und das Query Tool öffnen (Tools > Query Tool).
+5. Dort `schema.sql` über das Ordner-Symbol laden und mit F5 ausführen. Es darf keine rote Fehlermeldung kommen.
+6. Prüfen: Diese Abfrage muss genau die fünf Tabellen liefern.
+
+```sql
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public' ORDER BY table_name;
+```
+
+Erwartet: `group_members`, `groups`, `matches`, `tips`, `users`.
 
 ## Frontend lokal
 

@@ -1,0 +1,33 @@
+# REST Client (VS Code): Fehlerformat
+# Alle Fehler muessen im Format {"error":{"code":"...","message":"..."}} kommen.
+# Backend vorher starten.
+
+@baseUrl = http://localhost:8080/api
+
+### 1 Unbekannter Pfad, erwartet 404 {"error":{"code":"NOT_FOUND",...}}
+GET {{baseUrl}}/gibtsnicht
+
+### 2 Falsche HTTP-Methode, erwartet 405 {"error":{"code":"METHOD_NOT_ALLOWED",...}}
+POST {{baseUrl}}/ping
+
+### 3 Unbekannter Actuator-Pfad, erwartet 404 im selben Format
+GET http://localhost:8080/actuator/gibtsnicht
+
+# Die folgenden Faelle gehen erst, wenn POST /api/users existiert (Tag 3).
+# Bis dahin decken die JUnit-Tests (GlobalExceptionHandlerTest) sie ab.
+
+### 4 Kaputtes JSON, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{kaputt
+
+### 5 Leerer Body, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+### 6 Fehlende Pflichtfelder, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{}
