@@ -1,10 +1,14 @@
 package com.mosbach.tipprunde.error;
 
+import java.util.Comparator;
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -30,8 +34,15 @@ public class GlobalExceptionHandler {
     // @Valid-Prüfung fehlgeschlagen, z. B. leere oder ungültige E-Mail
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
+        // Meldung der ersten fehlgeschlagenen Regel (nach Feldname sortiert), sonst allgemeiner Text
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .sorted(Comparator.comparing(FieldError::getField))
+                .map(FieldError::getDefaultMessage)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse("Eingaben sind unvollständig oder ungültig.");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ErrorResponse.of("VALIDATION_ERROR", "Eingaben sind unvollständig oder ungültig."));
+                .body(ErrorResponse.of("VALIDATION_ERROR", message));
     }
 
     // Body fehlt oder ist kein gültiges JSON
