@@ -74,6 +74,18 @@ WHERE table_schema = 'public' ORDER BY table_name;
 
 Erwartet: `group_members`, `groups`, `matches`, `tips`, `users`.
 
+## Registrierung
+
+`POST /api/users` legt einen Nutzer an und braucht kein Token. Eingaben und Fehler:
+
+| Feld | Regel |
+|---|---|
+| `email` | gültige Adresse, höchstens 254 Zeichen, wird getrimmt und klein gespeichert |
+| `username` | 3 bis 30 Zeichen aus Buchstaben (A bis Z), Ziffern, `_`, `.` und `-` |
+| `password` | 8 bis 72 Zeichen, höchstens 72 Bytes (Umlaute zählen doppelt) |
+
+Antwort bei Erfolg: `201` mit `id`, `email` und `username`. Fehler: `400 VALIDATION_ERROR`, `409 EMAIL_TAKEN`, `409 USERNAME_TAKEN`. Das Passwort wird mit BCrypt gehasht gespeichert. Die Aufrufe zum Testen stehen in `docs/rest-client/users.http`.
+
 ## Frontend lokal
 
 Das Frontend (Repo `tipprunde-web`) wird lokal auf Port 5500 ausgeliefert, z. B. mit der VS-Code-Erweiterung Live Server. Andere Origins lassen sich über `CORS_ALLOWED_ORIGINS` freigeben.

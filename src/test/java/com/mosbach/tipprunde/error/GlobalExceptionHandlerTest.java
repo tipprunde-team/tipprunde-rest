@@ -39,7 +39,7 @@ class GlobalExceptionHandlerTest {
 		mockMvc.perform(post("/test/echo").contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"\"}"))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"))
-				.andExpect(jsonPath("$.error.message").value("Eingaben sind unvollständig oder ungültig."));
+				.andExpect(jsonPath("$.error.message").value("Name fehlt."));
 	}
 
 	@Test
@@ -82,7 +82,7 @@ class GlobalExceptionHandlerTest {
 	@RequestMapping("/test")
 	static class TestController {
 
-		record EchoRequest(@NotBlank String name) {
+		record EchoRequest(@NotBlank(message = "Name fehlt.") String name) {
 		}
 
 		@GetMapping("/conflict")
