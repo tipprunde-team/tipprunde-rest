@@ -1,0 +1,117 @@
+# Registrierung testen (VS Code, REST Client). Backend und Datenbank müssen laufen.
+# Fall 1 bis 3 und 4 legen mit Zufallswerten bzw. festen Werten Nutzer an.
+# Bei Wiederholung: Fall 4a liefert dann 409 statt 201, das ist erwartet.
+
+@baseUrl = http://localhost:8080/api
+
+### 1 Gültige Registrierung, erwartet 201 {id, email, username}, kein Passwort in der Antwort
+# @name register
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "anna-{{$randomInt 100000 999999}}@example.de",
+  "username": "anna_{{$randomInt 100000 999999}}",
+  "password": "Geheim123"
+}
+
+### 2 Gleiche E-Mail erneut, erwartet 409 EMAIL_TAKEN
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "{{register.response.body.email}}",
+  "username": "anderer_name_1",
+  "password": "Geheim123"
+}
+
+### 3 Gleicher Benutzername, erwartet 409 USERNAME_TAKEN
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "neu-{{$randomInt 100000 999999}}@example.de",
+  "username": "{{register.response.body.username}}",
+  "password": "Geheim123"
+}
+
+### 4a Anlegen mit Großbuchstaben in der E-Mail, erwartet 201 (E-Mail wird klein gespeichert), bei Wiederholung 409
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "Gross.Klein@Example.DE",
+  "username": "gross_klein",
+  "password": "Geheim123"
+}
+
+### 4b Dieselbe E-Mail in anderer Schreibweise, erwartet 409 EMAIL_TAKEN
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "GROSS.KLEIN@example.de",
+  "username": "gross_klein_2",
+  "password": "Geheim123"
+}
+
+### 5 Passwort mit 7 Zeichen, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "kurz-{{$randomInt 100000 999999}}@example.de",
+  "username": "kurz_{{$randomInt 100000 999999}}",
+  "password": "1234567"
+}
+
+### 6 Passwort mit 73 Zeichen, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "lang-{{$randomInt 100000 999999}}@example.de",
+  "username": "lang_{{$randomInt 100000 999999}}",
+  "password": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}
+
+### 7 Ungültige E-Mail, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "keine-mail",
+  "username": "mailfehler",
+  "password": "Geheim123"
+}
+
+### 8 Ungültiger Benutzername (Leerzeichen), erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "name-{{$randomInt 100000 999999}}@example.de",
+  "username": "a b",
+  "password": "Geheim123"
+}
+
+### 9 Kaputtes JSON, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{kaputt
+
+### 10 Leerer Body, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+### 11 Pflichtfelder fehlen, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{}
+
+# Prüfung in der Datenbank: Das Passwort muss als BCrypt-Hash gespeichert sein, also mit $2 beginnen.
+#   SELECT id, email, username, left(password_hash, 4) AS hash_start, length(password_hash) AS hash_length
+#   FROM users ORDER BY id;
+# Erwartet: hash_start = $2a$ und hash_length = 60, nie das Klartext-Passwort.
