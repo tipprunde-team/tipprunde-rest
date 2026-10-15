@@ -86,6 +86,23 @@ Erwartet: `group_members`, `groups`, `matches`, `tips`, `users`.
 
 Antwort bei Erfolg: `201` mit `id`, `email` und `username`. Fehler: `400 VALIDATION_ERROR`, `409 EMAIL_TAKEN`, `409 USERNAME_TAKEN`. Das Passwort wird mit BCrypt gehasht gespeichert. Die Aufrufe zum Testen stehen in `docs/rest-client/users.http`.
 
+## Geschützte Endpunkte und Token
+
+Alle Endpunkte unter `/api` brauchen ein Token im Header `Authorization: Bearer <token>`, außer diese vier:
+
+| Methode | Pfad |
+|---|---|
+| `POST` | `/api/users` (Registrierung) |
+| `POST` | `/api/auth` (Login) |
+| `GET` | `/api/ping` |
+| `GET` | `/api/invites/**` (Einladungsvorschau, folgt) |
+
+Die Methode zählt: `DELETE /api/auth` (Logout) ist geschützt. Fehlt das Token oder ist es ungültig oder abgelaufen, antwortet das Backend mit `401 UNAUTHORIZED` und der Meldung "Bitte melde dich erneut an.". Ein Token in der URL zählt nicht. CORS-Preflight-Anfragen (`OPTIONS`) laufen immer durch.
+
+Die Nutzer-ID kommt ausschließlich aus dem geprüften Token, nie aus Body oder URL. In Controllern gibt es sie über den Parameter `@CurrentUserId long userId`. Der Logout ist zustandslos: `DELETE /api/auth` antwortet mit 204, das Token bleibt bis zum Ablauf technisch gültig, das Frontend verwirft es.
+
+`GET /api/users/me` liefert das eigene Profil `{id, email, username, isSystemAdmin}`. Alle Aufrufe mit Fehlerfällen stehen in `docs/rest-client/alle-endpoints.http`.
+
 ## Frontend lokal
 
 Das Frontend (Repo `tipprunde-web`) wird lokal auf Port 5500 ausgeliefert, z. B. mit der VS-Code-Erweiterung Live Server. Andere Origins lassen sich über `CORS_ALLOWED_ORIGINS` freigeben.

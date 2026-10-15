@@ -1,0 +1,152 @@
+# Alle bisherigen Endpunkte mit Fehlerfällen (VS Code, REST Client).
+# Grundlage für die Abnahmetests (Testliste Anhang 3). Backend und Datenbank müssen laufen.
+# Der Ablauf geht von oben nach unten: Fall 2 legt einen Nutzer an, Fall 7 loggt ihn ein,
+# alle späteren Fälle benutzen dessen Token automatisch.
+
+@baseUrl = http://localhost:8080/api
+
+### 1 Ping ohne Token, erwartet 200 {"status":"ok"}
+GET {{baseUrl}}/ping
+
+### 2 Registrierung mit gültigen Daten, erwartet 201 {id, email, username}
+# @name register
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "alle-{{$randomInt 100000 999999}}@example.de",
+  "username": "alle_{{$randomInt 100000 999999}}",
+  "password": "Geheim123"
+}
+
+### 3a Gleiche E-Mail erneut, erwartet 409 EMAIL_TAKEN
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "{{register.response.body.email}}",
+  "username": "anderer_name_1",
+  "password": "Geheim123"
+}
+
+### 3b Anlegen mit Großbuchstaben in der E-Mail, erwartet 201 beim ersten Mal (E-Mail wird klein gespeichert), danach 409
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "Gross.Klein@Example.DE",
+  "username": "gross_klein",
+  "password": "Geheim123"
+}
+
+### 3c Gleiche E-Mail in anderer Schreibweise (Großbuchstaben), erwartet 409 EMAIL_TAKEN (nach Fall 3b)
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "GROSS.KLEIN@example.de",
+  "username": "gross_klein_2",
+  "password": "Geheim123"
+}
+
+### 4 Gleicher Benutzername, erwartet 409 USERNAME_TAKEN
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "neu-{{$randomInt 100000 999999}}@example.de",
+  "username": "{{register.response.body.username}}",
+  "password": "Geheim123"
+}
+
+### 5 Passwort mit 7 Zeichen, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "kurz-{{$randomInt 100000 999999}}@example.de",
+  "username": "kurz_{{$randomInt 100000 999999}}",
+  "password": "1234567"
+}
+
+### 6a Kaputtes JSON, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{kaputt
+
+### 6b Leerer Body, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+### 7 Login mit richtigen Daten, erwartet 200 {token, expiresAt, user}
+# @name login
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "{{register.response.body.email}}",
+  "password": "Geheim123"
+}
+
+### 8 Falsches Passwort, erwartet 401 UNAUTHORIZED (gleiche Meldung wie Fall 9)
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "{{register.response.body.email}}",
+  "password": "falsch1234"
+}
+
+### 9 Unbekannte E-Mail, erwartet 401 UNAUTHORIZED (gleiche Meldung wie Fall 8)
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "gibt-es-nicht@example.de",
+  "password": "Geheim123"
+}
+
+### 10 Eigenes Profil mit gültigem Token, erwartet 200 {id, email, username, isSystemAdmin}
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{login.response.body.token}}
+
+### 11 Profil ohne Token, erwartet 401 UNAUTHORIZED
+GET {{baseUrl}}/users/me
+
+### 12 Profil mit verändertem Token (ein Zeichen angehängt), erwartet 401 UNAUTHORIZED
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{login.response.body.token}}x
+
+### 13 Token in der URL statt im Header, erwartet 401 UNAUTHORIZED
+GET {{baseUrl}}/users/me?token={{login.response.body.token}}
+
+### 13b Fremde Nutzer-ID in der URL, erwartet 200 mit dem EIGENEN Profil (die ID kommt nur aus dem Token)
+GET {{baseUrl}}/users/me?userId=999
+Authorization: Bearer {{login.response.body.token}}
+
+### 14a Logout ohne Token, erwartet 401 UNAUTHORIZED
+DELETE {{baseUrl}}/auth
+
+### 14b Logout mit gültigem Token, erwartet 204 (das Frontend löscht das Token)
+DELETE {{baseUrl}}/auth
+Authorization: Bearer {{login.response.body.token}}
+
+### 14c Token nach dem Logout, erwartet weiterhin 200: Der Logout ist zustandslos, das Token gilt bis zum Ablauf
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{login.response.body.token}}
+
+### 15 Unbekannter Pfad, erwartet 404 NOT_FOUND im Fehlerformat (mit und ohne Token)
+GET {{baseUrl}}/gibtsnicht
+
+### 16 Falsche Methode, erwartet 405 METHOD_NOT_ALLOWED
+POST {{baseUrl}}/ping
+
+### 17 CORS-Preflight für einen geschützten Endpunkt, erwartet 200 ohne Token
+OPTIONS {{baseUrl}}/users/me
+Origin: http://localhost:5500
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: authorization
+
+# Fall 16 der Testliste (Passwort-Hash in der Datenbank) siehe README, Abschnitt Registrierung:
+# users.password_hash beginnt mit $2a$ und ist 60 Zeichen lang, nie das Klartext-Passwort.

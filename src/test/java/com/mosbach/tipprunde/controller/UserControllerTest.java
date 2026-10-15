@@ -1,9 +1,12 @@
 package com.mosbach.tipprunde.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -11,18 +14,24 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.mosbach.tipprunde.data.api.AuthManager;
 import com.mosbach.tipprunde.data.api.UserManager;
 import com.mosbach.tipprunde.error.ApiException;
 import com.mosbach.tipprunde.error.GlobalExceptionHandler;
+import com.mosbach.tipprunde.model.auth.TokenAnswer;
 import com.mosbach.tipprunde.model.user.RegisterRequest;
 import com.mosbach.tipprunde.model.user.UserProfileResponse;
 import com.mosbach.tipprunde.model.user.UserResponse;
+import com.mosbach.tipprunde.security.AuthInterceptor;
+import com.mosbach.tipprunde.security.CurrentUserIdArgumentResolver;
 
 // Standalone-Test mit Platzhalter-Manager, daher keine Datenbank nötig
 class UserControllerTest {
 
     private final FakeUserManager userManager = new FakeUserManager();
     private final MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new UserController(userManager))
+            .addInterceptors(new AuthInterceptor(new FakeAuthManager()))
+            .setCustomArgumentResolvers(new CurrentUserIdArgumentResolver())
             .setControllerAdvice(new GlobalExceptionHandler())
             .build();
 
@@ -116,6 +125,32 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.error.code").value("EMAIL_TAKEN"));
     }
 
+    @Test
+    void meReturnsOwnProfileForValidToken() throws Exception {
+        mockMvc.perform(get("/api/users/me").header("Authorization", "Bearer gueltiges-token"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(7))
+                .andExpect(jsonPath("$.email").value("anna@example.de"))
+                .andExpect(jsonPath("$.username").value("anna"))
+                .andExpect(jsonPath("$.isSystemAdmin").value(false))
+                .andExpect(jsonPath("$.password").doesNotExist())
+                .andExpect(jsonPath("$.passwordHash").doesNotExist());
+    }
+
+    @Test
+    void meWithoutTokenReturns401() throws Exception {
+        mockMvc.perform(get("/api/users/me"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("UNAUTHORIZED"));
+    }
+
+    @Test
+    void meWithChangedTokenReturns401() throws Exception {
+        mockMvc.perform(get("/api/users/me").header("Authorization", "Bearer gueltiges-tokenx"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("UNAUTHORIZED"));
+    }
+
     // Merkt sich die letzte Anfrage und wirft auf Wunsch einen Fehler
     private static class FakeUserManager implements UserManager {
 
@@ -133,7 +168,25 @@ class UserControllerTest {
 
         @Override
         public UserProfileResponse getProfile(long userId) {
+            return new UserProfileResponse(userId, "anna@example.de", "anna", false);
+        }
+    }
+
+    // Kennt nur ein gültiges Token, die Nutzer-ID dazu ist 7
+    private static class FakeAuthManager implements AuthManager {
+
+        @Override
+        public TokenAnswer logOn(String email, String password) {
             throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void logOff(String token) {
+        }
+
+        @Override
+        public Optional<Long> getUserIdFromToken(String token) {
+            return "gueltiges-token".equals(token) ? Optional.of(7L) : Optional.empty();
         }
     }
 }
