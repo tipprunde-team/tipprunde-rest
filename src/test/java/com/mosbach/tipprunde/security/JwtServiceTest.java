@@ -49,11 +49,11 @@ class JwtServiceTest {
 
     @Test
     void tamperedTokenIsRejected() {
-        String token = jwtService.createToken(1L, "tester");
-        // letztes Zeichen der Signatur verändern
-        char last = token.charAt(token.length() - 1);
-        String tampered = token.substring(0, token.length() - 1) + (last == 'A' ? 'B' : 'A');
-        assertTrue(jwtService.verify(tampered).isEmpty());
+        // Angreifer setzt den Inhalt eines fremden Tokens (Nutzer 2) vor die eigene Signatur (Nutzer 1)
+        String[] own = jwtService.createToken(1L, "tester").split("\\.");
+        String[] other = jwtService.createToken(2L, "andere").split("\\.");
+        String forged = own[0] + "." + other[1] + "." + own[2];
+        assertTrue(jwtService.verify(forged).isEmpty());
     }
 
     @Test
