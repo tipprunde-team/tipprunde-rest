@@ -1,0 +1,47 @@
+name: CI
+
+# läuft bei Push auf main und bei jedem PR auf main
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    # Name muss CI bleiben, wird beim Branch-Schutz als Status-Check eingetragen
+    name: CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      # Java 17 wie lokal, Gradle-Cache spart Zeit
+      - name: Set up JDK 17 with Gradle cache
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      # wir committen unter Windows, deshalb gradlew ausführbar machen
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      # Tests brauchen keine Datenbank, laufen also auch ohne aiven
+      - name: Run tests
+        run: ./gradlew test --no-daemon
+
+      # Testbericht auch bei Fehlern hochladen
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: test-reports
+          path: build/reports/tests/test/
+          retention-days: 14
