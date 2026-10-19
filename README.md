@@ -37,6 +37,7 @@ Optional:
 |---|---|---|
 | `PORT` | Port des Backends | `8080` |
 | `CORS_ALLOWED_ORIGINS` | erlaubte Frontend-Origins, kommagetrennt | `http://localhost:5500,http://127.0.0.1:5500` |
+| `DB_POOL_SIZE` | höchstens so viele Datenbankverbindungen je Instanz (alle teilen sich eine Free-Datenbank) | `3` |
 | `FOOTBALL_DATA_TOKEN` | API-Key von football-data.org (später für den Spielplan-Import) | – |
 
 Fehlen `DB_URL`, `DB_USER` oder `DB_PASSWORD`, startet das Backend nicht. Typische Meldung: `'url' must start with "jdbc"`. Fehlt `JWT_SECRET` oder ist es zu kurz, bricht der Start mit einer Meldung zu `JWT_SECRET` ab.
@@ -118,6 +119,60 @@ Die CI hat keinen Zugriff auf die aiven-Datenbank. Neue Tests deshalb ohne Daten
 Testbericht: Actions › Lauf öffnen › Artifacts › `test-reports`
 
 Lokal testen: `.\gradlew.bat test`
+
+## Deployment auf Heroku
+
+Der Core-Service läuft auf Heroku (Eco-Dyno) und wird über die GitHub-Verknüpfung im Heroku-Dashboard deployt, ohne Heroku CLI. Jeder Merge auf `main` geht nach grüner CI automatisch live.
+
+Dateien im Repo, die Heroku dafür braucht:
+
+| Datei | Zweck |
+|---|---|
+| `system.properties` | Java-Version 17 für Heroku |
+| `Procfile` | startet `build/libs/tipprunde-rest.jar` mit dem Port, den Heroku vorgibt |
+| `build.gradle` | baut nur die ausführbare JAR mit festem Namen `tipprunde-rest.jar` |
+| `gradlew` | muss in Git als ausführbar markiert sein, sonst bricht der Build unter Linux mit „Permission denied“ ab |
+
+Heroku baut mit `./gradlew build -x test`; die Tests laufen vorher in der CI.
+
+### Einrichtung im Dashboard (einmalig)
+
+1. App anlegen (Region Europe), Dyno-Typ Eco.
+2. Deploy › Deployment method › GitHub, `tipprunde-team/tipprunde-rest` verbinden (ein Owner der Organisation bestätigt den Zugriff).
+3. Settings › Config Vars eintragen (Werte nur dort und per Privatnachricht, nie im Repo):
+
+| Config Var | Inhalt |
+|---|---|
+| `DB_URL` | `jdbc:postgresql://HOST:PORT/defaultdb?sslmode=require` |
+| `DB_USER` | aiven-Benutzer |
+| `DB_PASSWORD` | aiven-Passwort |
+| `JWT_SECRET` | eigener Wert für Heroku, mindestens 32 Zeichen |
+| `CORS_ALLOWED_ORIGINS` | Live-URL der MPA, z. B. `https://tipprunde-team.github.io` |
+| `DB_POOL_SIZE` | optional, Standard `3` |
+
+`PORT` setzt Heroku selbst.
+
+4. Deploy › Manual deploy › Branch `main` deployen und das Build-Log beobachten.
+5. Live prüfen: `/actuator/health` liefert `{"status":"UP"}`, `/api/ping` liefert `{"status":"ok"}`.
+6. „Enable Automatic Deploys“ für `main` mit „Wait for CI to pass before deploy“ einschalten.
+7. Logs: More › View logs.
+
+Eco-Dynos schlafen nach 30 Minuten ohne Aufruf ein; vor jeder Demo `/actuator/health` einmal aufrufen.
+
+### Vor dem ersten Deployment lokal prüfen
+
+```powershell
+.\gradlew.bat bootJar
+java -jar build\libs\tipprunde-rest.jar
+```
+
+Im zweiten Terminal:
+
+```powershell
+Invoke-RestMethod http://localhost:8080/actuator/health
+```
+
+Erwartet: `status` ist `UP`. Danach den Server mit Strg+C stoppen.
 
 ## Team
 
