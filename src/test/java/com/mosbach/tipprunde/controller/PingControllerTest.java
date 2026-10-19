@@ -17,6 +17,6 @@ class PingControllerTest {
 	void pingReturnsStatusOk() throws Exception {
 		mockMvc.perform(get("/api/ping"))
 				.andExpect(status().isOk())
-				.andExpect(content().json("{\"status\":\"ok\"}"));
+				.andExpect(content().json("{\"status\":\"kaputt\"}"));
 	}
 }
