@@ -1,5 +1,7 @@
 # tipprunde-rest
 
+[![CI](https://github.com/tipprunde-team/tipprunde-rest/actions/workflows/ci.yml/badge.svg)](https://github.com/tipprunde-team/tipprunde-rest/actions/workflows/ci.yml)
+
 Backend der Fußball-Tippseite (Spring Boot 4.1, Gradle Groovy, Java 17 bis 24, PostgreSQL bei aiven.io).
 
 ## Setup unter Windows
@@ -107,6 +109,17 @@ Die Nutzer-ID kommt ausschließlich aus dem geprüften Token, nie aus Body oder 
 
 Das Frontend (Repo `tipprunde-web`) wird lokal auf Port 5500 ausgeliefert, z. B. mit der VS-Code-Erweiterung Live Server. Andere Origins lassen sich über `CORS_ALLOWED_ORIGINS` freigeben.
 
+## Continuous Integration
+
+Bei jedem Pull Request und jedem Push auf `main` baut GitHub Actions das Projekt und führt alle Tests aus (`.github/workflows/ci.yml`). Gemergt wird nur mit grünem Status-Check **CI**.
+
+Die CI hat keinen Zugriff auf die aiven-Datenbank. Neue Tests deshalb ohne Datenbank schreiben (Standalone-MockMvc oder Platzhalter-Manager wie in den bestehenden Tests).
+
+Testbericht: Actions › Lauf öffnen › Artifacts › `test-reports`
+
+Lokal testen: `.\gradlew.bat test`
+
 ## Team
 
 Max Schramberger und Arlind Hulaj (Backend), Maximilian Göllnitz (PO), Niklas Schusser (SM)
+
