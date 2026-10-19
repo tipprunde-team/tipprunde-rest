@@ -40,7 +40,7 @@ jobs:
       # Testbericht auch bei Fehlern hochladen
       - name: Upload test reports
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: test-reports
           path: build/reports/tests/test/
