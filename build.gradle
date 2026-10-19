@@ -34,3 +34,12 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+// Heroku: build only the executable jar with a stable name (see Procfile)
+tasks.named('jar') {
+	enabled = false
+}
+
+tasks.named('bootJar') {
+	archiveFileName = 'tipprunde-rest.jar'
+}
