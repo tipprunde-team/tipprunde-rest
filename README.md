@@ -113,10 +113,11 @@ Die Nutzer-ID kommt ausschließlich aus dem geprüften Token, nie aus Body oder 
 |---|---|---|
 | `POST` | `/api/groups` | `201` mit `{id, name, inviteCode, role}`, der Ersteller ist `ADMIN` |
 | `GET` | `/api/groups` | `200` mit der Liste der eigenen Gruppen `{id, name, role, memberCount, myRank, myPoints}` |
+| `GET` | `/api/groups/{groupId}` | `200` mit `{id, name, inviteCode, members[{userId, username, role, joinedAt}]}`, nur für Mitglieder (`403 NOT_A_MEMBER`, `404 GROUP_NOT_FOUND`) |
 
 Der Name wird getrimmt und muss 1 bis 50 Zeichen lang sein (sonst `400 VALIDATION_ERROR`). Der Einladungscode hat 10 Zeichen aus einem URL-sicheren Alphabet ohne leicht verwechselbare Zeichen (ohne `0`, `O`, `1`, `I`, `l`). Gruppe und Admin-Mitgliedschaft werden in einer Transaktion angelegt, bei einer Kollision des Codes wird ein neuer erzeugt. Fehlende Punkte zählen als 0, der Rang ergibt sich per `RANK()` aus den Punkten innerhalb der Gruppe (gleiche Punkte, gleicher Rang).
 
-Für alle Pfade unter `/api/groups/{groupId}/**` prüft `GroupAccess` zentral die Mitgliedschaft: `requireMember` antwortet mit `404 GROUP_NOT_FOUND` oder `403 NOT_A_MEMBER`, `requireAdmin` zusätzlich mit `403 NOT_GROUP_ADMIN`. Die Aufrufe zum Testen stehen in `docs/rest-client/groups.http`.
+Der `inviteCode` steht in den Gruppendetails nur für Admins in der Antwort, bei normalen Mitgliedern fehlt das Feld. Die Mitglieder sind sortiert: Admin zuerst, dann nach Beitrittszeit. Für alle Pfade unter `/api/groups/{groupId}/**` prüft `GroupAccess` zentral die Mitgliedschaft: `requireMember` antwortet mit `404 GROUP_NOT_FOUND` oder `403 NOT_A_MEMBER`, `requireAdmin` zusätzlich mit `403 NOT_GROUP_ADMIN`. Die Aufrufe zum Testen stehen in `docs/rest-client/groups.http`.
 
 ## Frontend lokal
 
