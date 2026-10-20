@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +19,9 @@ import com.mosbach.tipprunde.data.api.GroupManager;
 import com.mosbach.tipprunde.error.ApiException;
 import com.mosbach.tipprunde.model.group.CreateGroupRequest;
 import com.mosbach.tipprunde.model.group.GroupCreated;
+import com.mosbach.tipprunde.model.group.GroupDetails;
 import com.mosbach.tipprunde.model.group.GroupSummary;
+import com.mosbach.tipprunde.model.group.Member;
 import com.mosbach.tipprunde.security.Membership;
 
 // Gruppen in den Tabellen groups und group_members, alle Abfragen mit PreparedStatement
@@ -62,6 +65,13 @@ public class PostgresGroupManagerImpl implements GroupManager {
             JOIN ranked r ON r.group_id = mg.group_id AND r.user_id = ?
             ORDER BY g.name, g.id
             """;
+
+    private static final String SELECT_GROUP = "SELECT name, invite_code FROM groups WHERE id = ?";
+    // Admin zuerst, sonst nach Beitrittszeit
+    private static final String SELECT_MEMBERS =
+            "SELECT gm.user_id, u.username, gm.role, gm.joined_at FROM group_members gm "
+                    + "JOIN users u ON u.id = gm.user_id WHERE gm.group_id = ? "
+                    + "ORDER BY (gm.role = 'ADMIN') DESC, gm.joined_at, gm.user_id";
 
     private final DataSource dataSource;
     private final InviteCodeGenerator codeGenerator;
@@ -120,6 +130,39 @@ public class PostgresGroupManagerImpl implements GroupManager {
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Datenbankfehler beim Lesen der Gruppen", e);
+        }
+    }
+
+    @Override
+    public GroupDetails getGroupDetails(long groupId, boolean includeInviteCode) {
+        try (Connection con = dataSource.getConnection()) {
+            String name;
+            String inviteCode;
+            try (PreparedStatement ps = con.prepareStatement(SELECT_GROUP)) {
+                ps.setLong(1, groupId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new ApiException(HttpStatus.NOT_FOUND, "GROUP_NOT_FOUND",
+                                "Diese Tippgruppe gibt es nicht.");
+                    }
+                    name = rs.getString("name");
+                    inviteCode = rs.getString("invite_code");
+                }
+            }
+            List<Member> members = new ArrayList<>();
+            try (PreparedStatement ps = con.prepareStatement(SELECT_MEMBERS)) {
+                ps.setLong(1, groupId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        Timestamp joinedAt = rs.getTimestamp("joined_at");
+                        members.add(new Member(rs.getLong("user_id"), rs.getString("username"),
+                                rs.getString("role"), joinedAt.toInstant()));
+                    }
+                }
+            }
+            return new GroupDetails(groupId, name, includeInviteCode ? inviteCode : null, members);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Datenbankfehler beim Lesen der Gruppendetails", e);
         }
     }
 

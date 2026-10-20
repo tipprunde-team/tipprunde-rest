@@ -84,3 +84,43 @@ Content-Type: application/json
 {
   "name": "TEST ohne Token"
 }
+
+### 24 Gruppendetails als Admin, erwartet 200 mit name, members (userId, username, role, joinedAt) und inviteCode
+GET {{baseUrl}}/groups/{{createGroup.response.body.id}}
+Authorization: Bearer {{login.response.body.token}}
+
+### 25a Unbekannte Gruppe, erwartet 404 GROUP_NOT_FOUND
+GET {{baseUrl}}/groups/999999
+Authorization: Bearer {{login.response.body.token}}
+
+### 25b Zweites Testkonto anlegen und einloggen (für Fall 25c)
+# @name register2
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "test-max2-{{$randomInt 100000 999999}}@example.de",
+  "username": "TEST_max2_{{$randomInt 100000 999999}}",
+  "password": "Geheim123"
+}
+
+###
+# @name login2
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "{{register2.response.body.email}}",
+  "password": "Geheim123"
+}
+
+### 25c Fremde Gruppe (Gruppe aus Fall 17, Token des zweiten Kontos), erwartet 403 NOT_A_MEMBER
+GET {{baseUrl}}/groups/{{createGroup.response.body.id}}
+Authorization: Bearer {{login2.response.body.token}}
+
+### 25d Gruppen-ID ohne Zahl, erwartet 400 VALIDATION_ERROR
+GET {{baseUrl}}/groups/abc
+Authorization: Bearer {{login.response.body.token}}
+
+### 25e Gruppendetails ohne Token, erwartet 401 UNAUTHORIZED
+GET {{baseUrl}}/groups/{{createGroup.response.body.id}}
