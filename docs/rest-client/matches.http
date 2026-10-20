@@ -1,0 +1,39 @@
+# Spieltag einer Gruppe testen (US-17). Vorher: Backend starten, Seed und test-group.sql auf aiven ausgeführt.
+# groupId aus der letzten Abfrage von test-group.sql eintragen.
+@baseUrl = http://localhost:8080/api
+@groupId = 1
+
+### 0 Login als tester, liefert das Token für alle weiteren Fälle
+# @name login
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "test@tippseite.de",
+  "password": "Test1234!"
+}
+
+### 1 Ohne matchday, erwartet 200, aktueller Spieltag 7 mit serverTime, locked false, myTip 2:1 beim ersten Spiel
+GET {{baseUrl}}/groups/{{groupId}}/matches
+Authorization: Bearer {{login.response.body.token}}
+
+### 2 Spieltag 6, erwartet 200, alle locked true, result gesetzt
+GET {{baseUrl}}/groups/{{groupId}}/matches?matchday=6
+Authorization: Bearer {{login.response.body.token}}
+
+### 3 Leerer Spieltag, erwartet 200 mit leerer Liste
+GET {{baseUrl}}/groups/{{groupId}}/matches?matchday=20
+Authorization: Bearer {{login.response.body.token}}
+
+### 4 Ungültiger Spieltag, erwartet 400 VALIDATION_ERROR
+GET {{baseUrl}}/groups/{{groupId}}/matches?matchday=35
+Authorization: Bearer {{login.response.body.token}}
+
+### 5 Unbekannte Gruppe, erwartet 404 GROUP_NOT_FOUND
+GET {{baseUrl}}/groups/999999/matches
+Authorization: Bearer {{login.response.body.token}}
+
+### 6 Ohne Token, erwartet 401 UNAUTHORIZED
+GET {{baseUrl}}/groups/{{groupId}}/matches
+
+### 7 Nichtmitglied: mit einem zweiten Konto einloggen und Fall 1 wiederholen, erwartet 403 NOT_A_MEMBER
