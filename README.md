@@ -105,6 +105,19 @@ Die Nutzer-ID kommt ausschließlich aus dem geprüften Token, nie aus Body oder 
 
 `GET /api/users/me` liefert das eigene Profil `{id, email, username, isSystemAdmin}`. Alle Aufrufe mit Fehlerfällen stehen in `docs/rest-client/alle-endpoints.http`.
 
+## Tippgruppen
+
+`POST /api/groups` und `GET /api/groups` brauchen ein Token (siehe oben). Die Nutzer-ID kommt aus dem Token.
+
+| Methode | Pfad | Antwort |
+|---|---|---|
+| `POST` | `/api/groups` | `201` mit `{id, name, inviteCode, role}`, der Ersteller ist `ADMIN` |
+| `GET` | `/api/groups` | `200` mit der Liste der eigenen Gruppen `{id, name, role, memberCount, myRank, myPoints}` |
+
+Der Name wird getrimmt und muss 1 bis 50 Zeichen lang sein (sonst `400 VALIDATION_ERROR`). Der Einladungscode hat 10 Zeichen aus einem URL-sicheren Alphabet ohne leicht verwechselbare Zeichen (ohne `0`, `O`, `1`, `I`, `l`). Gruppe und Admin-Mitgliedschaft werden in einer Transaktion angelegt, bei einer Kollision des Codes wird ein neuer erzeugt. Fehlende Punkte zählen als 0, der Rang ergibt sich per `RANK()` aus den Punkten innerhalb der Gruppe (gleiche Punkte, gleicher Rang).
+
+Für alle Pfade unter `/api/groups/{groupId}/**` prüft `GroupAccess` zentral die Mitgliedschaft: `requireMember` antwortet mit `404 GROUP_NOT_FOUND` oder `403 NOT_A_MEMBER`, `requireAdmin` zusätzlich mit `403 NOT_GROUP_ADMIN`. Die Aufrufe zum Testen stehen in `docs/rest-client/groups.http`.
+
 ## Frontend lokal
 
 Das Frontend (Repo `tipprunde-web`) wird lokal auf Port 5500 ausgeliefert, z. B. mit der VS-Code-Erweiterung Live Server. Andere Origins lassen sich über `CORS_ALLOWED_ORIGINS` freigeben.
@@ -121,5 +134,5 @@ Lokal testen: `.\gradlew.bat test`
 
 ## Team
 
-Max Schramberger und Arlind Hulaj (Backend), Maximilian Göllnitz (PO), Niklas Schusser (SM)
+Max Schamberger und Arlind Hulaj (Backend), Maximilian Göllnitz (PO), Niklas Schusser (SM)
 

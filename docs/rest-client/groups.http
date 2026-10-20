@@ -1,0 +1,86 @@
+# Tippgruppen anlegen und auflisten (VS Code, REST Client). Backend und Datenbank müssen laufen.
+# Testdaten in der gemeinsamen Datenbank immer mit Präfix TEST anlegen.
+# Fall 1 legt ein Konto an und loggt es ein, alle weiteren Fälle benutzen dessen Token.
+
+@baseUrl = http://localhost:8080/api
+
+### 1a Testkonto anlegen, erwartet 201
+# @name register
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "test-max-{{$randomInt 100000 999999}}@example.de",
+  "username": "TEST_max_{{$randomInt 100000 999999}}",
+  "password": "Geheim123"
+}
+
+### 1b Einloggen, erwartet 200 mit token
+# @name login
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "{{register.response.body.email}}",
+  "password": "Geheim123"
+}
+
+### 17 Gruppe anlegen, erwartet 201 {id, name, inviteCode (10 Zeichen), role: ADMIN}
+# @name createGroup
+POST {{baseUrl}}/groups
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "name": "TEST WG Max"
+}
+
+### 17b Name mit Leerzeichen am Rand, erwartet 201, der Name wird getrimmt gespeichert
+POST {{baseUrl}}/groups
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "name": "   TEST Getrimmt   "
+}
+
+### 18a Leerer Name, erwartet 400 VALIDATION_ERROR, keine Gruppe angelegt
+POST {{baseUrl}}/groups
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "name": ""
+}
+
+### 18b Name mit 51 Zeichen, erwartet 400 VALIDATION_ERROR, keine Gruppe angelegt
+POST {{baseUrl}}/groups
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{
+  "name": "123456789012345678901234567890123456789012345678901"
+}
+
+### 18c Kaputtes JSON, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/groups
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{kaputt
+
+### 19 Eigene Gruppen, erwartet 200 mit der Gruppe aus Fall 17: role ADMIN, memberCount 1, myRank 1, myPoints 0
+GET {{baseUrl}}/groups
+Authorization: Bearer {{login.response.body.token}}
+
+### 20 Ohne Token, erwartet 401 UNAUTHORIZED (gilt für POST und GET)
+GET {{baseUrl}}/groups
+
+### 21 Ungültiges Token, erwartet 401 UNAUTHORIZED
+POST {{baseUrl}}/groups
+Authorization: Bearer kein-gueltiges-token
+Content-Type: application/json
+
+{
+  "name": "TEST ohne Token"
+}
