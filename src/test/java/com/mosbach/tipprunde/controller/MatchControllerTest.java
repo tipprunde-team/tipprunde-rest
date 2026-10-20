@@ -27,7 +27,8 @@ import com.mosbach.tipprunde.model.match.MatchStatus;
 import com.mosbach.tipprunde.model.tip.Tip;
 import com.mosbach.tipprunde.security.AuthInterceptor;
 import com.mosbach.tipprunde.security.CurrentUserIdArgumentResolver;
-import com.mosbach.tipprunde.security.MembershipCheck;
+import com.mosbach.tipprunde.security.GroupAccess;
+import com.mosbach.tipprunde.security.Membership;
 
 // Standalone test with fakes and a fixed clock, no database needed
 class MatchControllerTest {
@@ -37,7 +38,7 @@ class MatchControllerTest {
     private static final long OTHER_GROUP = 4L;
 
     private final MockMvc mockMvc = MockMvcBuilders
-            .standaloneSetup(new MatchController(new FakeMembershipCheck(), new FakeMatchManager(),
+            .standaloneSetup(new MatchController(new FakeGroupAccess(), new FakeMatchManager(),
                     new FakeTipManager(), Clock.fixed(NOW, ZoneOffset.UTC)))
             .addInterceptors(new AuthInterceptor(new FakeAuthManager()))
             .setCustomArgumentResolvers(new CurrentUserIdArgumentResolver())
@@ -123,20 +124,21 @@ class MatchControllerTest {
     }
 
     // User 7 is member of group 3 only; group 4 exists, everything else does not
-    private static class FakeMembershipCheck extends MembershipCheck {
+    private static class FakeGroupAccess extends GroupAccess {
 
-        FakeMembershipCheck() {
+        FakeGroupAccess() {
             super(null);
         }
 
         @Override
-        public void requireMember(long groupId, long userId) {
+        public Membership requireMember(long groupId, long userId) {
             if (groupId != MY_GROUP && groupId != OTHER_GROUP) {
                 throw new ApiException(HttpStatus.NOT_FOUND, "GROUP_NOT_FOUND", "Diese Tippgruppe gibt es nicht.");
             }
             if (groupId != MY_GROUP || userId != 7L) {
                 throw new ApiException(HttpStatus.FORBIDDEN, "NOT_A_MEMBER", "Du bist kein Mitglied dieser Tippgruppe.");
             }
+            return new Membership(groupId, userId, Membership.MEMBER, NOW.minusSeconds(86400));
         }
     }
 
@@ -176,6 +178,11 @@ class MatchControllerTest {
         @Override
         public List<Tip> getOwnTipsForMatchday(long groupId, long userId, int matchday) {
             return matchday == 7 ? List.of(new Tip(1L, groupId, userId, 20L, 2, 1, null, NOW)) : List.of();
+        }
+
+        @Override
+        public Tip saveTip(long groupId, long userId, long matchId, int home, int away, Instant now) {
+            throw new UnsupportedOperationException();
         }
     }
 
