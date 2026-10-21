@@ -10,18 +10,32 @@ Voraussetzung: JDK 17 oder neuer (`java -version`). Gradle muss nicht installier
 
 ### Umgebungsvariablen
 
-Zugangsdaten stehen nie im Code oder Repo. Sie werden pro Person in der Eingabeaufforderung gesetzt (`cmd`):
+Zugangsdaten stehen nie im Code oder Repo. Sie werden pro Person einmalig in der Eingabeaufforderung gesetzt (`cmd`, über das Startmenü geöffnet).
+
+**Schritt 1: DB_URL aus der aiven-Service-URI bauen.** Die Service-URI aus der Privatnachricht sieht so aus:
 
 ```
-setx DB_URL "jdbc:postgresql://HOST:PORT/defaultdb?sslmode=require"
-setx DB_USER "avnadmin"
+postgres://avnadmin:PASSWORT@tipprunde-beispiel.aivencloud.com:12345/defaultdb?sslmode=require
+```
+
+Für `DB_URL` davor `jdbc:` setzen, aus `postgres` wird `postgresql`, und Benutzer und Passwort (alles zwischen `//` und `@`) entfallen:
+
+```
+jdbc:postgresql://tipprunde-beispiel.aivencloud.com:12345/defaultdb?sslmode=require
+```
+
+**Schritt 2: Die vier Variablen setzen.** Alles in Großbuchstaben bzw. spitzen Klammern durch die echten Werte ersetzen, die Klammern selbst entfallen:
+
+```
+setx DB_URL "jdbc:postgresql://<HOST>:<PORT>/defaultdb?sslmode=require"
+setx DB_USER "<Benutzer, meist avnadmin>"
 setx DB_PASSWORD "<Passwort aus der Privatnachricht>"
 setx JWT_SECRET "<gemeinsames Secret aus der Privatnachricht>"
 ```
 
-Danach das Terminal bzw. IntelliJ neu starten, damit die Variablen ankommen. Prüfen in `cmd` mit `echo %DB_URL%`, in PowerShell mit `$env:DB_URL`.
+**Schritt 3: Neues Terminal öffnen.** `setx` wirkt nur in Fenstern, die danach geöffnet werden. Das aktuelle Fenster schließen und ein neues über das Startmenü öffnen. Prüfen mit `echo %DB_URL%` (cmd) bzw. `$env:DB_URL` (PowerShell): Es muss die echte Adresse erscheinen, kein `HOST` oder `PORT`.
 
-Die aiven-Service-URI sieht so aus: `postgres://USER:PASSWORD@HOST:PORT/defaultdb?sslmode=require`. Für `DB_URL` wird daraus nur `jdbc:postgresql://HOST:PORT/defaultdb?sslmode=require`. Benutzer und Passwort kommen getrennt in `DB_USER` und `DB_PASSWORD`.
+Gespeicherte Werte lassen sich unabhängig vom Fenster prüfen mit `reg query HKCU\Environment`.
 
 `JWT_SECRET` signiert die Login-Tokens und muss mindestens 32 Zeichen lang sein. Alle im Team verwenden denselben Wert. Eine Person erzeugt ihn einmal (PowerShell) und teilt ihn privat:
 
@@ -39,13 +53,14 @@ Optional:
 | `CORS_ALLOWED_ORIGINS` | erlaubte Frontend-Origins, kommagetrennt | `http://localhost:5500,http://127.0.0.1:5500` |
 | `DB_POOL_SIZE` | höchstens so viele Datenbankverbindungen je Instanz (alle teilen sich eine Free-Datenbank) | `3` |
 | `FOOTBALL_DATA_TOKEN` | API-Key von football-data.org (später für den Spielplan-Import) | – |
+| `DB_STARTUP_CHECK` | Verbindung zur Datenbank beim Start prüfen | `true` |
 
-Fehlen `DB_URL`, `DB_USER` oder `DB_PASSWORD`, startet das Backend nicht. Typische Meldung: `'url' must start with "jdbc"`. Fehlt `JWT_SECRET` oder ist es zu kurz, bricht der Start mit einer Meldung zu `JWT_SECRET` ab.
+Beim Start prüft das Backend die Konfiguration (`StartupConfigCheck`): Fehlt eine Variable, steht noch ein Platzhalter darin oder ist die Datenbank nicht erreichbar, bricht der Start mit einer Zeile `Configuration error: …` bzw. `Database not reachable at …` ab. Läuft alles, steht im Log `Database connection OK`. Fehlt `JWT_SECRET` oder ist es kürzer als 32 Zeichen, bricht der Start ebenfalls ab. Die Verbindungsprüfung lässt sich bei Bedarf mit `DB_STARTUP_CHECK=false` abschalten.
 
 ### Starten und testen
 
 ```
-cd %USERPROFILE%\Desktop\tipprunde-wi25a\tipprunde-rest
+cd "<Pfad zum Repo>\tipprunde-rest"
 gradlew.bat bootRun
 gradlew.bat test
 ```
@@ -58,6 +73,17 @@ Im Browser prüfen:
 - http://localhost:8080/actuator/health liefert `{"status":"UP"}` (bei nicht erreichbarer Datenbank `DOWN`)
 
 Die API-Aufrufe zum Testen liegen für die VS-Code-Erweiterung REST Client in `docs/rest-client/`.
+
+### Fehlerbehebung
+
+| Symptom | Ursache | Lösung |
+|---|---|---|
+| `Configuration error: DB_URL still contains the placeholder …` | In `DB_URL` steht noch `HOST`, `PORT` oder `<…>` aus dieser README | DB_URL wie oben aus der Service-URI bauen und mit `setx` neu setzen, dann neues Terminal |
+| `echo %DB_URL%` zeigt nach `setx` noch den alten Wert | Das Terminal wurde über GitHub Desktop, VS Code oder IntelliJ geöffnet, und das Programm lief schon vor `setx` | Terminal über das Startmenü öffnen oder das Programm komplett neu starten |
+| `Database not reachable at …` | Falsches Passwort, falscher Host oder aiven lässt die eigene IP nicht zu | Werte mit `reg query HKCU\Environment` prüfen; bei IP-Filter in aiven die eigene IP freigeben lassen |
+| `Port 8080 was already in use` | Ein altes Backend läuft noch | `gradlew.bat --stop`, dann `netstat -ano \| findstr :8080` und `taskkill /PID <PID> /F` |
+| `Strg + C` beendet das Backend nicht | Das Fenster reagiert nicht | Fenster schließen, danach wie bei Port 8080 vorgehen |
+| Login im Browser meldet „interner Fehler“ | Fehler im Backend, Details stehen im Backend-Fenster | Im Backend-Fenster nach `ERROR` suchen, die Zeile darunter nennt die Ursache |
 
 ## Datenbankschema auf aiven einspielen (pgAdmin)
 
