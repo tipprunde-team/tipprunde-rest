@@ -26,7 +26,7 @@ import com.mosbach.tipprunde.model.match.MatchEntry;
 import com.mosbach.tipprunde.model.match.MatchdayResponse;
 import com.mosbach.tipprunde.model.tip.Tip;
 import com.mosbach.tipprunde.security.CurrentUserId;
-import com.mosbach.tipprunde.security.MembershipCheck;
+import com.mosbach.tipprunde.security.GroupAccess;
 
 // Matchday of a group with lock state and own tip (US-17, UC-01)
 @RestController
@@ -38,14 +38,14 @@ public class MatchController {
     private static final int FIRST_MATCHDAY = 1;
     private static final int LAST_MATCHDAY = 34;
 
-    private final MembershipCheck membershipCheck;
+    private final GroupAccess groupAccess;
     private final MatchManager matchManager;
     private final TipManager tipManager;
     private final Clock clock;
 
-    public MatchController(MembershipCheck membershipCheck, MatchManager matchManager, TipManager tipManager,
+    public MatchController(GroupAccess groupAccess, MatchManager matchManager, TipManager tipManager,
             Clock clock) {
-        this.membershipCheck = membershipCheck;
+        this.groupAccess = groupAccess;
         this.matchManager = matchManager;
         this.tipManager = tipManager;
         this.clock = clock;
@@ -59,7 +59,7 @@ public class MatchController {
         log.info("Matchday requested: groupId={}, matchday={}, userId={}", groupId, matchday, userId);
 
         // Order as in the API reference: token (interceptor) > membership > input
-        membershipCheck.requireMember(groupId, userId);
+        groupAccess.requireMember(groupId, userId);
         int selectedMatchday = matchday != null ? validMatchday(matchday) : matchManager.getCurrentMatchday();
 
         // Lock state depends on server time only, never on the client clock
