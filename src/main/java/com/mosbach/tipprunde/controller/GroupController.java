@@ -16,6 +16,7 @@ import com.mosbach.tipprunde.model.group.CreateGroupRequest;
 import com.mosbach.tipprunde.model.group.GroupCreated;
 import com.mosbach.tipprunde.model.group.GroupDetails;
 import com.mosbach.tipprunde.model.group.GroupSummary;
+import com.mosbach.tipprunde.model.group.JoinGroupRequest;
 import com.mosbach.tipprunde.security.CurrentUserId;
 import com.mosbach.tipprunde.security.GroupAccess;
 import com.mosbach.tipprunde.security.Membership;
@@ -45,6 +46,12 @@ public class GroupController {
     @GetMapping
     public List<GroupSummary> list(@CurrentUserId long userId) {
         return groupManager.listGroups(userId);
+    }
+
+    // Beitritt per Einladungscode: 404 INVITE_INVALID, 409 ALREADY_MEMBER, 409 GROUP_FULL
+    @PostMapping("/join")
+    public GroupSummary join(@CurrentUserId long userId, @Valid @RequestBody JoinGroupRequest request) {
+        return groupManager.joinGroup(userId, request.inviteCode());
     }
 
     // Nur für Mitglieder, den Einladungscode bekommt nur der Admin
