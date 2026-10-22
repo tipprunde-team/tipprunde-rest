@@ -73,10 +73,10 @@ Content-Type: application/json
 GET {{baseUrl}}/groups
 Authorization: Bearer {{login.response.body.token}}
 
-### 20 Ohne Token, erwartet 401 UNAUTHORIZED (gilt für POST und GET)
+### 17c Ohne Token, erwartet 401 UNAUTHORIZED (gilt für POST und GET)
 GET {{baseUrl}}/groups
 
-### 21 Ungültiges Token, erwartet 401 UNAUTHORIZED
+### 17d Ungültiges Token, erwartet 401 UNAUTHORIZED
 POST {{baseUrl}}/groups
 Authorization: Bearer kein-gueltiges-token
 Content-Type: application/json
@@ -124,3 +124,60 @@ Authorization: Bearer {{login.response.body.token}}
 
 ### 25e Gruppendetails ohne Token, erwartet 401 UNAUTHORIZED
 GET {{baseUrl}}/groups/{{createGroup.response.body.id}}
+
+# Einladungsvorschau und Beitritt (Fälle 20 bis 23 der Testliste).
+# Voraussetzung: Fall 17 (Gruppe) und 25b (zweites Konto, login2) wurden vorher gesendet.
+
+### 20 Einladungsvorschau ohne Token, gültiger Code, erwartet 200 {groupId, groupName, memberCount}
+GET {{baseUrl}}/invites/{{createGroup.response.body.inviteCode}}
+
+### 21 Ungültiger Code, erwartet 404 INVITE_INVALID
+GET {{baseUrl}}/invites/falsch
+
+### 22 Zweites Konto tritt mit dem Code bei, erwartet 200 mit role MEMBER, memberCount 2
+POST {{baseUrl}}/groups/join
+Authorization: Bearer {{login2.response.body.token}}
+Content-Type: application/json
+
+{
+  "inviteCode": "{{createGroup.response.body.inviteCode}}"
+}
+
+### 23 Zweites Konto tritt erneut bei, erwartet 409 ALREADY_MEMBER
+POST {{baseUrl}}/groups/join
+Authorization: Bearer {{login2.response.body.token}}
+Content-Type: application/json
+
+{
+  "inviteCode": "{{createGroup.response.body.inviteCode}}"
+}
+
+### 23b Falscher Code beim Beitritt, erwartet 404 INVITE_INVALID
+POST {{baseUrl}}/groups/join
+Authorization: Bearer {{login2.response.body.token}}
+Content-Type: application/json
+
+{
+  "inviteCode": "falsch"
+}
+
+### 23c Leerer Code, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/groups/join
+Authorization: Bearer {{login2.response.body.token}}
+Content-Type: application/json
+
+{
+  "inviteCode": ""
+}
+
+### 23d Beitritt ohne Token, erwartet 401 UNAUTHORIZED
+POST {{baseUrl}}/groups/join
+Content-Type: application/json
+
+{
+  "inviteCode": "{{createGroup.response.body.inviteCode}}"
+}
+
+### 24b Nach dem Beitritt: Gruppendetails als Mitglied (zweites Konto), erwartet 200 mit 2 Mitgliedern und ohne inviteCode
+GET {{baseUrl}}/groups/{{createGroup.response.body.id}}
+Authorization: Bearer {{login2.response.body.token}}

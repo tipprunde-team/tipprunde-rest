@@ -21,6 +21,7 @@ import com.mosbach.tipprunde.model.group.CreateGroupRequest;
 import com.mosbach.tipprunde.model.group.GroupCreated;
 import com.mosbach.tipprunde.model.group.GroupDetails;
 import com.mosbach.tipprunde.model.group.GroupSummary;
+import com.mosbach.tipprunde.model.group.InvitePreview;
 import com.mosbach.tipprunde.model.group.Member;
 import com.mosbach.tipprunde.security.Membership;
 
@@ -35,6 +36,8 @@ public class PostgresGroupManagerImpl implements GroupManager {
     private static final String FOREIGN_KEY_VIOLATION = "23503";
     // Bei 55^10 möglichen Codes reicht ein Wiederholungsversuch praktisch immer, die Grenze schützt vor Endlosschleifen
     private static final int MAX_CODE_ATTEMPTS = 10;
+    // Höchstzahl der Mitglieder einer Gruppe (FA-23.1)
+    public static final int MAX_MEMBERS = 200;
 
     private static final String INSERT_GROUP =
             "INSERT INTO groups (name, invite_code) VALUES (?, ?) RETURNING id";
@@ -72,6 +75,17 @@ public class PostgresGroupManagerImpl implements GroupManager {
             "SELECT gm.user_id, u.username, gm.role, gm.joined_at FROM group_members gm "
                     + "JOIN users u ON u.id = gm.user_id WHERE gm.group_id = ? "
                     + "ORDER BY (gm.role = 'ADMIN') DESC, gm.joined_at, gm.user_id";
+
+    private static final String SELECT_INVITE_PREVIEW =
+            "SELECT g.id, g.name, (SELECT COUNT(*) FROM group_members m WHERE m.group_id = g.id) AS member_count "
+                    + "FROM groups g WHERE g.invite_code = ?";
+    // FOR UPDATE sperrt die Gruppenzeile: gleichzeitige Beitritte laufen nacheinander und überschreiten die Grenze nicht
+    private static final String LOCK_GROUP_BY_CODE = "SELECT id FROM groups WHERE invite_code = ? FOR UPDATE";
+    private static final String COUNT_MEMBERS =
+            "SELECT COUNT(*) AS member_count, COUNT(*) FILTER (WHERE user_id = ?) AS is_member "
+                    + "FROM group_members WHERE group_id = ?";
+    private static final String INSERT_MEMBER =
+            "INSERT INTO group_members (group_id, user_id, role) VALUES (?, ?, 'MEMBER')";
 
     private final DataSource dataSource;
     private final InviteCodeGenerator codeGenerator;
@@ -164,6 +178,93 @@ public class PostgresGroupManagerImpl implements GroupManager {
         } catch (SQLException e) {
             throw new IllegalStateException("Datenbankfehler beim Lesen der Gruppendetails", e);
         }
+    }
+
+    @Override
+    public InvitePreview getInvitePreview(String inviteCode) {
+        try (Connection con = dataSource.getConnection();
+                PreparedStatement ps = con.prepareStatement(SELECT_INVITE_PREVIEW)) {
+            ps.setString(1, inviteCode);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    throw invalidInvite();
+                }
+                return new InvitePreview(rs.getLong("id"), rs.getString("name"), rs.getInt("member_count"));
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Datenbankfehler bei der Einladungsvorschau", e);
+        }
+    }
+
+    @Override
+    public GroupSummary joinGroup(long userId, String inviteCode) {
+        long groupId;
+        try (Connection con = dataSource.getConnection()) {
+            con.setAutoCommit(false);
+            try {
+                groupId = lockGroup(con, inviteCode);
+                int memberCount;
+                boolean alreadyMember;
+                try (PreparedStatement ps = con.prepareStatement(COUNT_MEMBERS)) {
+                    ps.setLong(1, userId);
+                    ps.setLong(2, groupId);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        rs.next();
+                        memberCount = rs.getInt("member_count");
+                        alreadyMember = rs.getInt("is_member") > 0;
+                    }
+                }
+                // Wer schon Mitglied ist, bekommt auch bei voller Gruppe ALREADY_MEMBER
+                if (alreadyMember) {
+                    log.warn("Beitritt abgelehnt: Nutzer {} ist schon Mitglied von Gruppe {}", userId, groupId);
+                    throw new ApiException(HttpStatus.CONFLICT, "ALREADY_MEMBER",
+                            "Du bist schon Mitglied dieser Tippgruppe.");
+                }
+                if (memberCount >= MAX_MEMBERS) {
+                    log.warn("Beitritt abgelehnt: Gruppe {} ist voll", groupId);
+                    throw new ApiException(HttpStatus.CONFLICT, "GROUP_FULL",
+                            "Diese Tippgruppe ist voll. Es sind höchstens " + MAX_MEMBERS + " Mitglieder möglich.");
+                }
+                try (PreparedStatement ps = con.prepareStatement(INSERT_MEMBER)) {
+                    ps.setLong(1, groupId);
+                    ps.setLong(2, userId);
+                    ps.executeUpdate();
+                }
+                con.commit();
+                log.info("Nutzer {} ist Gruppe {} beigetreten", userId, groupId);
+            } catch (ApiException | SQLException e) {
+                con.rollback();
+                if (e instanceof SQLException sql && FOREIGN_KEY_VIOLATION.equals(sql.getSQLState())) {
+                    // Token ist gültig, den Nutzer gibt es aber nicht mehr
+                    throw new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED",
+                            "Nicht angemeldet oder Sitzung abgelaufen.");
+                }
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Datenbankfehler beim Beitritt zur Gruppe", e);
+        }
+        return listGroups(userId).stream()
+                .filter(group -> group.id() == groupId)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Gruppe nach dem Beitritt nicht gefunden"));
+    }
+
+    private static long lockGroup(Connection con, String inviteCode) throws SQLException {
+        try (PreparedStatement ps = con.prepareStatement(LOCK_GROUP_BY_CODE)) {
+            ps.setString(1, inviteCode);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    throw invalidInvite();
+                }
+                return rs.getLong("id");
+            }
+        }
+    }
+
+    private static ApiException invalidInvite() {
+        return new ApiException(HttpStatus.NOT_FOUND, "INVITE_INVALID",
+                "Dieser Einladungscode ist ungültig.");
     }
 
     private static long insertGroup(Connection con, String name, String inviteCode) throws SQLException {

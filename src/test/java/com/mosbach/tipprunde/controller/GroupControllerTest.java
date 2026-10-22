@@ -26,6 +26,7 @@ import com.mosbach.tipprunde.model.group.CreateGroupRequest;
 import com.mosbach.tipprunde.model.group.GroupCreated;
 import com.mosbach.tipprunde.model.group.GroupDetails;
 import com.mosbach.tipprunde.model.group.GroupSummary;
+import com.mosbach.tipprunde.model.group.InvitePreview;
 import com.mosbach.tipprunde.model.group.Member;
 import com.mosbach.tipprunde.security.AuthInterceptor;
 import com.mosbach.tipprunde.security.CurrentUserIdArgumentResolver;
@@ -217,6 +218,86 @@ class GroupControllerTest {
                 .andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"));
     }
 
+    private ResultActions join(String json) throws Exception {
+        return mockMvc.perform(post("/api/groups/join").header("Authorization", TOKEN)
+                .contentType(MediaType.APPLICATION_JSON).content(json));
+    }
+
+    @Test
+    void joinReturns200WithGroupSummaryAsMember() throws Exception {
+        join("{\"inviteCode\":\"k7Qp2xZ9aB\"}")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(3))
+                .andExpect(jsonPath("$.name").value("WG Lohrtalweg"))
+                .andExpect(jsonPath("$.role").value("MEMBER"))
+                .andExpect(jsonPath("$.memberCount").value(5))
+                .andExpect(jsonPath("$.myRank").value(5))
+                .andExpect(jsonPath("$.myPoints").value(0));
+        assertEquals(7L, groupManager.lastUserId);
+        assertEquals("k7Qp2xZ9aB", groupManager.lastJoinCode);
+    }
+
+    @Test
+    void joinTrimsTheInviteCode() throws Exception {
+        join("{\"inviteCode\":\"  k7Qp2xZ9aB \"}").andExpect(status().isOk());
+
+        assertEquals("k7Qp2xZ9aB", groupManager.lastJoinCode);
+    }
+
+    @Test
+    void joinUsesTheUserIdFromTheTokenNotFromTheBody() throws Exception {
+        join("{\"inviteCode\":\"k7Qp2xZ9aB\",\"userId\":99}").andExpect(status().isOk());
+
+        assertEquals(7L, groupManager.lastUserId);
+    }
+
+    @Test
+    void joinWithBlankOrMissingCodeReturnsValidationError() throws Exception {
+        join("{\"inviteCode\":\"   \"}")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.error.message").value("Bitte einen Einladungscode angeben."));
+        join("{}").andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.code").value("VALIDATION_ERROR"));
+        assertEquals(0, groupManager.joinCalls);
+    }
+
+    @Test
+    void joinWithInvalidCodeReturns404() throws Exception {
+        groupManager.joinFailWith = new ApiException(HttpStatus.NOT_FOUND, "INVITE_INVALID", "Dieser Einladungscode ist ungültig.");
+
+        join("{\"inviteCode\":\"falsch\"}")
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value("INVITE_INVALID"));
+    }
+
+    @Test
+    void joinWhenAlreadyMemberReturns409() throws Exception {
+        groupManager.joinFailWith = new ApiException(HttpStatus.CONFLICT, "ALREADY_MEMBER", "Du bist schon Mitglied dieser Tippgruppe.");
+
+        join("{\"inviteCode\":\"k7Qp2xZ9aB\"}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("ALREADY_MEMBER"));
+    }
+
+    @Test
+    void joinWhenGroupIsFullReturns409() throws Exception {
+        groupManager.joinFailWith = new ApiException(HttpStatus.CONFLICT, "GROUP_FULL", "Diese Tippgruppe ist voll.");
+
+        join("{\"inviteCode\":\"k7Qp2xZ9aB\"}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error.code").value("GROUP_FULL"));
+    }
+
+    @Test
+    void joinWithoutTokenReturns401() throws Exception {
+        mockMvc.perform(post("/api/groups/join").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"inviteCode\":\"k7Qp2xZ9aB\"}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("UNAUTHORIZED"));
+        assertEquals(0, groupManager.joinCalls);
+    }
+
     // Merkt sich die letzten Aufrufe
     private static class FakeGroupManager implements GroupManager {
 
@@ -224,6 +305,9 @@ class GroupControllerTest {
         CreateGroupRequest lastRequest;
         int createCalls;
         int detailsCalls;
+        int joinCalls;
+        String lastJoinCode;
+        ApiException joinFailWith;
         List<GroupSummary> groups = List.of(new GroupSummary(3, "WG Lohrtalweg", "ADMIN", 4, 2, 31));
 
         @Override
@@ -238,6 +322,22 @@ class GroupControllerTest {
         public List<GroupSummary> listGroups(long userId) {
             lastUserId = userId;
             return groups;
+        }
+
+        @Override
+        public InvitePreview getInvitePreview(String inviteCode) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public GroupSummary joinGroup(long userId, String inviteCode) {
+            joinCalls++;
+            lastUserId = userId;
+            lastJoinCode = inviteCode;
+            if (joinFailWith != null) {
+                throw joinFailWith;
+            }
+            return new GroupSummary(3, "WG Lohrtalweg", "MEMBER", 5, 5, 0);
         }
 
         @Override

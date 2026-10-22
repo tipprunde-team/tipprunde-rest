@@ -124,7 +124,7 @@ Alle Endpunkte unter `/api` brauchen ein Token im Header `Authorization: Bearer 
 | `POST` | `/api/users` (Registrierung) |
 | `POST` | `/api/auth` (Login) |
 | `GET` | `/api/ping` |
-| `GET` | `/api/invites/**` (Einladungsvorschau, folgt) |
+| `GET` | `/api/invites/**` (Einladungsvorschau) |
 
 Die Methode zählt: `DELETE /api/auth` (Logout) ist geschützt. Fehlt das Token oder ist es ungültig oder abgelaufen, antwortet das Backend mit `401 UNAUTHORIZED` und der Meldung "Bitte melde dich erneut an.". Ein Token in der URL zählt nicht. CORS-Preflight-Anfragen (`OPTIONS`) laufen immer durch.
 
@@ -140,11 +140,15 @@ Die Nutzer-ID kommt ausschließlich aus dem geprüften Token, nie aus Body oder 
 |---|---|---|
 | `POST` | `/api/groups` | `201` mit `{id, name, inviteCode, role}`, der Ersteller ist `ADMIN` |
 | `GET` | `/api/groups` | `200` mit der Liste der eigenen Gruppen `{id, name, role, memberCount, myRank, myPoints}` |
+| `POST` | `/api/groups/join` | `200` mit dem Gruppeneintrag wie in `GET /api/groups` (`role: MEMBER`), Body `{inviteCode}` |
+| `GET` | `/api/invites/{inviteCode}` | `200` mit `{groupId, groupName, memberCount}`, ohne Token (`404 INVITE_INVALID`) |
 | `GET` | `/api/groups/{groupId}` | `200` mit `{id, name, inviteCode, members[{userId, username, role, joinedAt}]}`, nur für Mitglieder (`403 NOT_A_MEMBER`, `404 GROUP_NOT_FOUND`) |
 
 Der Name wird getrimmt und muss 1 bis 50 Zeichen lang sein (sonst `400 VALIDATION_ERROR`). Der Einladungscode hat 10 Zeichen aus einem URL-sicheren Alphabet ohne leicht verwechselbare Zeichen (ohne `0`, `O`, `1`, `I`, `l`). Gruppe und Admin-Mitgliedschaft werden in einer Transaktion angelegt, bei einer Kollision des Codes wird ein neuer erzeugt. Fehlende Punkte zählen als 0, der Rang ergibt sich per `RANK()` aus den Punkten innerhalb der Gruppe (gleiche Punkte, gleicher Rang).
 
-Der `inviteCode` steht in den Gruppendetails nur für Admins in der Antwort, bei normalen Mitgliedern fehlt das Feld. Die Mitglieder sind sortiert: Admin zuerst, dann nach Beitrittszeit. Für alle Pfade unter `/api/groups/{groupId}/**` prüft `GroupAccess` zentral die Mitgliedschaft: `requireMember` antwortet mit `404 GROUP_NOT_FOUND` oder `403 NOT_A_MEMBER`, `requireAdmin` zusätzlich mit `403 NOT_GROUP_ADMIN`. Die Aufrufe zum Testen stehen in `docs/rest-client/groups.http`.
+Der `inviteCode` steht in den Gruppendetails nur für Admins in der Antwort, bei normalen Mitgliedern fehlt das Feld. Die Mitglieder sind sortiert: Admin zuerst, dann nach Beitrittszeit. Der Beitritt prüft Code, Mitgliedschaft und Größe in einer Transaktion. Die Gruppenzeile wird dafür gesperrt, deshalb überschreiten auch gleichzeitige Beitritte die Grenze nicht. Fehler: `404 INVITE_INVALID`, `409 ALREADY_MEMBER` (hat Vorrang, auch bei voller Gruppe), `409 GROUP_FULL` ab 200 Mitgliedern, `401` ohne Token. Wer schon Mitglied ist, findet die Gruppe über die `groupId` aus der Einladungsvorschau. Eine Gruppe darf höchstens 200 Mitglieder haben (FA-23.1).
+
+Für alle Pfade unter `/api/groups/{groupId}/**` prüft `GroupAccess` zentral die Mitgliedschaft: `requireMember` antwortet mit `404 GROUP_NOT_FOUND` oder `403 NOT_A_MEMBER`, `requireAdmin` zusätzlich mit `403 NOT_GROUP_ADMIN`. Die Aufrufe zum Testen stehen in `docs/rest-client/groups.http`.
 
 ## Frontend lokal
 
