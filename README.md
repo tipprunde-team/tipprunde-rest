@@ -74,6 +74,13 @@ Im Browser prüfen:
 
 Die API-Aufrufe zum Testen liegen für die VS-Code-Erweiterung REST Client in `docs/rest-client/`.
 
+Das Passwort des gemeinsamen Testkontos `test@tippseite.de` steht nicht im Repo. Die `.http`-Dateien lesen es mit `{{$processEnv TEST_PASSWORD}}` aus einer Windows-Variable. Einmalig in PowerShell setzen (Passwort aus der Privatnachricht bei der Abfrage einfügen) und danach VS Code komplett neu starten:
+
+```powershell
+$s = Read-Host "Testkonto-Passwort" -AsSecureString
+[Environment]::SetEnvironmentVariable("TEST_PASSWORD", [Net.NetworkCredential]::new("", $s).Password, "User")
+```
+
 ### Fehlerbehebung
 
 | Symptom | Ursache | Lösung |

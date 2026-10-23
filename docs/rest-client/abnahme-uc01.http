@@ -1,4 +1,5 @@
 # Abnahmetests UC-01 online, Ergänzung zu online.http (AT-01-03, -04, -09, -12, -13)
+# Das Passwort des Testkontos steht nicht im Repo: Windows-Variable TEST_PASSWORD (siehe README)
 # Konto A ist das Testkonto tester. Konto B wird bei jedem Durchlauf neu angelegt und tritt
 # einer eigenen Testgruppe bei, damit die Gruppe 1 nicht mit Testkonten volläuft.
 @host = https://tipprunde-rest-b06734b76aad.herokuapp.com
@@ -14,7 +15,7 @@ Content-Type: application/json
 
 {
   "email": "test@tippseite.de",
-  "password": "Test1234!"
+  "password": "{{$processEnv TEST_PASSWORD}}"
 }
 
 ### AT-01-03a Grenzwert 0:0, erwartet 200

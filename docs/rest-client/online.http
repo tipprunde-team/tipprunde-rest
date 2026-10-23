@@ -1,4 +1,5 @@
 # Online-Tests gegen Heroku (VS Code, REST Client), Fälle 26 bis 33 der Testliste
+# Das Passwort des Testkontos steht nicht im Repo: Windows-Variable TEST_PASSWORD (siehe README)
 # Live-URL aus dem Heroku-Dashboard (Open app), ohne / am Ende.
 # Daten in der gemeinsamen aiven-Datenbank: Spieltag 6 hat die IDs 1 bis 9 (beendet), Spieltag 7 die IDs 10 bis 18.
 # Spiel 10 hat am Fr 23.10. um 20:30 Uhr Anstoß und zeigt die Sperre am echten Spiel (Fall 29b).
@@ -22,7 +23,7 @@ Content-Type: application/json
 
 {
   "email": "test@tippseite.de",
-  "password": "Test1234!"
+  "password": "{{$processEnv TEST_PASSWORD}}"
 }
 
 ### 0b Ohne Token, erwartet 401 UNAUTHORIZED

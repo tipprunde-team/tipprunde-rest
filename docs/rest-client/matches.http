@@ -1,4 +1,5 @@
 # Spieltag einer Gruppe testen (US-17). Vorher: Backend starten, Seed und test-group.sql auf aiven ausgeführt.
+# Das Passwort des Testkontos steht nicht im Repo: Windows-Variable TEST_PASSWORD (siehe README)
 # groupId aus der letzten Abfrage von test-group.sql eintragen.
 @baseUrl = http://localhost:8080/api
 @groupId = 1
@@ -10,7 +11,7 @@ Content-Type: application/json
 
 {
   "email": "test@tippseite.de",
-  "password": "Test1234!"
+  "password": "{{$processEnv TEST_PASSWORD}}"
 }
 
 ### 1 Ohne matchday, erwartet 200, aktueller Spieltag 7 mit serverTime, locked false, myTip 2:1 beim ersten Spiel
