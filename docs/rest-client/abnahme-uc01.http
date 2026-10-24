@@ -1,0 +1,108 @@
+# Abnahmetests UC-01 online, Ergänzung zu online.http (AT-01-03, -04, -09, -12, -13)
+# Konto A ist das Testkonto tester. Konto B wird bei jedem Durchlauf neu angelegt und tritt
+# einer eigenen Testgruppe bei, damit die Gruppe 1 nicht mit Testkonten volläuft.
+@host = https://tipprunde-rest-b06734b76aad.herokuapp.com
+@baseUrl = {{host}}/api
+@groupId = 1
+@openMatch = 11
+@finishedMatch = 1
+
+### Login Konto A
+# @name a
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "test@tippseite.de",
+  "password": "Test1234!"
+}
+
+### AT-01-03a Grenzwert 0:0, erwartet 200
+PUT {{baseUrl}}/groups/{{groupId}}/matches/{{openMatch}}/tip
+Authorization: Bearer {{a.response.body.token}}
+Content-Type: application/json
+
+{ "home": 0, "away": 0 }
+
+### AT-01-03b Grenzwert 20:20, erwartet 200
+PUT {{baseUrl}}/groups/{{groupId}}/matches/{{openMatch}}/tip
+Authorization: Bearer {{a.response.body.token}}
+Content-Type: application/json
+
+{ "home": 20, "away": 20 }
+
+### AT-01-04a Ungültiger Tipp -1, erwartet 400 INVALID_SCORE
+PUT {{baseUrl}}/groups/{{groupId}}/matches/{{openMatch}}/tip
+Authorization: Bearer {{a.response.body.token}}
+Content-Type: application/json
+
+{ "home": -1, "away": 0 }
+
+### AT-01-04b Kontrolle, erwartet bei Spiel 11 weiterhin myTip {home 20, away 20}
+GET {{baseUrl}}/groups/{{groupId}}/matches?matchday=7
+Authorization: Bearer {{a.response.body.token}}
+
+### AT-01-12b Ungültiges Token, erwartet 401 UNAUTHORIZED
+PUT {{baseUrl}}/groups/{{groupId}}/matches/{{openMatch}}/tip
+Authorization: Bearer abc.def.ghi
+Content-Type: application/json
+
+{ "home": 1, "away": 0 }
+
+### Vorbereitung 1: Konto A legt eine eigene Testgruppe an, erwartet 201 mit inviteCode
+# @name grp
+POST {{baseUrl}}/groups
+Authorization: Bearer {{a.response.body.token}}
+Content-Type: application/json
+
+{ "name": "TEST Abnahme AT-01" }
+
+### Vorbereitung 2: Konto B anlegen, erwartet 201 mit id
+# @name b
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "test-at-{{$randomInt 100000 999999}}@example.de",
+  "username": "TEST_at_{{$randomInt 100000 999999}}",
+  "password": "Geheim123"
+}
+
+### Vorbereitung 3: Konto B einloggen, erwartet 200 mit token
+# @name bLogin
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "{{b.response.body.email}}",
+  "password": "Geheim123"
+}
+
+### Vorbereitung 4: Konto B tritt der Testgruppe bei, erwartet 200 mit role MEMBER
+POST {{baseUrl}}/groups/join
+Authorization: Bearer {{bLogin.response.body.token}}
+Content-Type: application/json
+
+{ "inviteCode": "{{grp.response.body.inviteCode}}" }
+
+### AT-01-09 Konto B tippt auf ein Spiel, das vor seinem Beitritt begann, erwartet 403 TIP_LOCKED
+PUT {{baseUrl}}/groups/{{grp.response.body.id}}/matches/{{finishedMatch}}/tip
+Authorization: Bearer {{bLogin.response.body.token}}
+Content-Type: application/json
+
+{ "home": 1, "away": 0 }
+
+### AT-01-13a Konto A schickt zusätzlich die Nutzer-ID von Konto B im Body, erwartet 200
+PUT {{baseUrl}}/groups/{{grp.response.body.id}}/matches/{{openMatch}}/tip
+Authorization: Bearer {{a.response.body.token}}
+Content-Type: application/json
+
+{ "home": 1, "away": 0, "userId": {{b.response.body.id}} }
+
+### AT-01-13b Kontrolle Konto B, erwartet bei Spiel 11 myTip null (kein Tipp für Konto B)
+GET {{baseUrl}}/groups/{{grp.response.body.id}}/matches?matchday=7
+Authorization: Bearer {{bLogin.response.body.token}}
+
+### AT-01-13c Kontrolle Konto A, erwartet bei Spiel 11 myTip {home 1, away 0}
+GET {{baseUrl}}/groups/{{grp.response.body.id}}/matches?matchday=7
+Authorization: Bearer {{a.response.body.token}}

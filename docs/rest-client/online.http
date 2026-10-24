@@ -1,0 +1,139 @@
+# Online-Tests gegen Heroku (VS Code, REST Client), Fälle 26 bis 33 der Testliste
+# Live-URL aus dem Heroku-Dashboard (Open app), ohne / am Ende.
+# Daten in der gemeinsamen aiven-Datenbank: Spieltag 6 hat die IDs 1 bis 9 (beendet), Spieltag 7 die IDs 10 bis 18.
+# Spiel 10 hat am Fr 23.10. um 20:30 Uhr Anstoß und zeigt die Sperre am echten Spiel (Fall 29b).
+@host = https://tipprunde-rest-b06734b76aad.herokuapp.com
+@baseUrl = {{host}}/api
+@groupId = 1
+@openMatch = 11
+@lockMatch = 10
+@finishedMatch = 1
+
+### 33 Health, erwartet 200 {"status":"UP"}
+GET {{host}}/actuator/health
+
+### 33b Ping, erwartet 200 {"status":"ok"}
+GET {{baseUrl}}/ping
+
+### 0 Login als tester, erwartet 200 mit token
+# @name login
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "test@tippseite.de",
+  "password": "Test1234!"
+}
+
+### 0b Ohne Token, erwartet 401 UNAUTHORIZED
+GET {{baseUrl}}/groups/{{groupId}}/matches
+
+### 26 Spieltag ohne matchday, erwartet 200 mit matchday, serverTime und locked je Spiel
+GET {{baseUrl}}/groups/{{groupId}}/matches
+Authorization: Bearer {{login.response.body.token}}
+
+### 26b Spieltag 6, erwartet 200, alle Spiele beendet und locked true
+GET {{baseUrl}}/groups/{{groupId}}/matches?matchday=6
+Authorization: Bearer {{login.response.body.token}}
+
+### 27a Tipp vor Anstoß, erwartet 200 {matchId, home 2, away 1, updatedAt}
+PUT {{baseUrl}}/groups/{{groupId}}/matches/{{openMatch}}/tip
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{ "home": 2, "away": 1 }
+
+### 27b Zweiter Tipp auf dasselbe Spiel, erwartet 200 und ersetzt den ersten
+PUT {{baseUrl}}/groups/{{groupId}}/matches/{{openMatch}}/tip
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{ "home": 3, "away": 0 }
+
+### 27c Kontrolle, erwartet bei Spiel 11 myTip {home 3, away 0}
+GET {{baseUrl}}/groups/{{groupId}}/matches?matchday=7
+Authorization: Bearer {{login.response.body.token}}
+
+### 28a Tore -1, erwartet 400 INVALID_SCORE
+PUT {{baseUrl}}/groups/{{groupId}}/matches/{{openMatch}}/tip
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{ "home": -1, "away": 0 }
+
+### 28b Tore 21, erwartet 400 INVALID_SCORE
+PUT {{baseUrl}}/groups/{{groupId}}/matches/{{openMatch}}/tip
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{ "home": 21, "away": 0 }
+
+### 28c Kommazahl 1.5, erwartet 400 INVALID_SCORE
+PUT {{baseUrl}}/groups/{{groupId}}/matches/{{openMatch}}/tip
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{ "home": 1.5, "away": 0 }
+
+### 28d Wert fehlt, erwartet 400 INVALID_SCORE
+PUT {{baseUrl}}/groups/{{groupId}}/matches/{{openMatch}}/tip
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{ "away": 0 }
+
+### 29 Beendetes Spiel, erwartet 403 TIP_LOCKED
+PUT {{baseUrl}}/groups/{{groupId}}/matches/{{finishedMatch}}/tip
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{ "home": 1, "away": 0 }
+
+### 29b Sperre am echten Spiel: vor Fr 23.10., 20:30 Uhr erwartet 200, ab 20:30 Uhr 403 TIP_LOCKED
+PUT {{baseUrl}}/groups/{{groupId}}/matches/{{lockMatch}}/tip
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{ "home": 1, "away": 1 }
+
+### 30 Spiel begann vor dem Beitritt, erwartet ebenfalls 403 TIP_LOCKED, weil die Sperre zuerst greift
+PUT {{baseUrl}}/groups/{{groupId}}/matches/{{finishedMatch}}/tip
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{ "home": 0, "away": 0 }
+
+### 31a Zweites Testkonto anlegen, erwartet 201
+# @name other
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "test-online-{{$randomInt 100000 999999}}@example.de",
+  "username": "TEST_online_{{$randomInt 100000 999999}}",
+  "password": "Geheim123"
+}
+
+### 31b Zweites Konto einloggen, erwartet 200 mit token
+# @name otherLogin
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "{{other.response.body.email}}",
+  "password": "Geheim123"
+}
+
+### 31 Tipp in einer fremden Gruppe, erwartet 403 NOT_A_MEMBER
+PUT {{baseUrl}}/groups/{{groupId}}/matches/{{openMatch}}/tip
+Authorization: Bearer {{otherLogin.response.body.token}}
+Content-Type: application/json
+
+{ "home": 2, "away": 1 }
+
+### 32 Unbekanntes Spiel, erwartet 404 MATCH_NOT_FOUND
+PUT {{baseUrl}}/groups/{{groupId}}/matches/999999/tip
+Authorization: Bearer {{login.response.body.token}}
+Content-Type: application/json
+
+{ "home": 1, "away": 0 }
