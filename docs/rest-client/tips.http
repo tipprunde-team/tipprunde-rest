@@ -1,4 +1,5 @@
 # Tipp abgeben und ändern (US-20, US-21), Fälle 26 bis 32 der Testliste (Projektplan Anhang 2)
+# Das Passwort des Testkontos steht nicht im Repo: Windows-Variable TEST_PASSWORD (siehe README)
 # Vorher: Backend starten, Seed und test-group.sql auf aiven ausgeführt.
 # Auf aiven: Spieltag 6 hat die IDs 1 bis 9 (beendet), Spieltag 7 die IDs 10 bis 18 (kommend).
 @baseUrl = http://localhost:8080/api
@@ -13,7 +14,7 @@ Content-Type: application/json
 
 {
   "email": "test@tippseite.de",
-  "password": "Test1234!"
+  "password": "{{$processEnv TEST_PASSWORD}}"
 }
 
 ### 26 Spieltag ohne matchday, erwartet 200 mit serverTime und locked

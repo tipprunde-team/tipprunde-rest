@@ -1,4 +1,5 @@
 # Login und Logout testen (Backend vorher starten)
+# Das Passwort des Testkontos steht nicht im Repo: Windows-Variable TEST_PASSWORD (siehe README)
 @baseUrl = http://localhost:8080/api
 
 ### 1 Login ok, erwartet 200 mit token, expiresAt, user
@@ -8,7 +9,7 @@ Content-Type: application/json
 
 {
   "email": "test@tippseite.de",
-  "password": "Test1234!"
+  "password": "{{$processEnv TEST_PASSWORD}}"
 }
 
 ### 2 Falsches Passwort, erwartet 401 UNAUTHORIZED
@@ -26,7 +27,7 @@ Content-Type: application/json
 
 {
   "email": "niemand@tippseite.de",
-  "password": "Test1234!"
+  "password": "{{$processEnv TEST_PASSWORD}}"
 }
 
 ### 4 Leere Felder, erwartet 400 VALIDATION_ERROR
