@@ -20,6 +20,10 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import com.mosbach.tipprunde.security.AuthInterceptor;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 // Wandelt Exceptions aller Controller in das einheitliche Fehlerformat um
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -27,7 +31,13 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ApiException.class)
-    public ResponseEntity<ErrorResponse> handleApiException(ApiException ex) {
+    public ResponseEntity<ErrorResponse> handleApiException(ApiException ex, HttpServletRequest request) {
+        // Abgelehnte Zugriffe (401, 403) sichtbar machen: Pfad ohne Query-String, nie Token, Passwort oder Body
+        if (ex.getStatus() == HttpStatus.UNAUTHORIZED || ex.getStatus() == HttpStatus.FORBIDDEN) {
+            Object userId = request.getAttribute(AuthInterceptor.USER_ID_ATTRIBUTE);
+            log.warn("Access denied: status={} code={} method={} path={} user={}", ex.getStatus().value(),
+                    ex.getCode(), request.getMethod(), request.getRequestURI(), userId == null ? "-" : userId);
+        }
         return ResponseEntity.status(ex.getStatus()).body(ErrorResponse.of(ex.getCode(), ex.getMessage()));
     }
 
@@ -89,7 +99,7 @@ public class GlobalExceptionHandler {
     // Alles andere: Details nur ins Log, nie nach außen (kein Passwort, kein Token loggen)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {
-        log.error("Unerwarteter Fehler", ex);
+        log.error("Unexpected error", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ErrorResponse.of("INTERNAL_ERROR",
                         "Es ist ein interner Fehler aufgetreten. Bitte später erneut versuchen."));

@@ -106,12 +106,12 @@ public class PostgresGroupManagerImpl implements GroupManager {
                     long groupId = insertGroup(con, request.name(), inviteCode);
                     insertAdmin(con, groupId, userId);
                     con.commit();
-                    log.info("Gruppe {} von Nutzer {} angelegt", groupId, userId);
+                    log.info("Group created: groupId={}, userId={}", groupId, userId);
                     return new GroupCreated(groupId, request.name(), inviteCode, Membership.ADMIN);
                 } catch (SQLException e) {
                     con.rollback();
                     if (UNIQUE_VIOLATION.equals(e.getSQLState())) {
-                        log.warn("Einladungscode schon vergeben, neuer Versuch {}", attempt);
+                        log.warn("Invite code collision, retry {}", attempt);
                         continue;
                     }
                     if (FOREIGN_KEY_VIOLATION.equals(e.getSQLState())) {
@@ -216,12 +216,12 @@ public class PostgresGroupManagerImpl implements GroupManager {
                 }
                 // Wer schon Mitglied ist, bekommt auch bei voller Gruppe ALREADY_MEMBER
                 if (alreadyMember) {
-                    log.warn("Beitritt abgelehnt: Nutzer {} ist schon Mitglied von Gruppe {}", userId, groupId);
+                    log.warn("Join rejected: ALREADY_MEMBER groupId={}, userId={}", groupId, userId);
                     throw new ApiException(HttpStatus.CONFLICT, "ALREADY_MEMBER",
                             "Du bist schon Mitglied dieser Tippgruppe.");
                 }
                 if (memberCount >= MAX_MEMBERS) {
-                    log.warn("Beitritt abgelehnt: Gruppe {} ist voll", groupId);
+                    log.warn("Join rejected: GROUP_FULL groupId={}, userId={}", groupId, userId);
                     throw new ApiException(HttpStatus.CONFLICT, "GROUP_FULL",
                             "Diese Tippgruppe ist voll. Es sind höchstens " + MAX_MEMBERS + " Mitglieder möglich.");
                 }
@@ -231,7 +231,7 @@ public class PostgresGroupManagerImpl implements GroupManager {
                     ps.executeUpdate();
                 }
                 con.commit();
-                log.info("Nutzer {} ist Gruppe {} beigetreten", userId, groupId);
+                log.info("Group joined: groupId={}, userId={}", groupId, userId);
             } catch (ApiException | SQLException e) {
                 con.rollback();
                 if (e instanceof SQLException sql && FOREIGN_KEY_VIOLATION.equals(sql.getSQLState())) {
