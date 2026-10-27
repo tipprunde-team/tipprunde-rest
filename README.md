@@ -4,6 +4,16 @@
 
 Backend der Fußball-Tippseite (Spring Boot 4.1, Gradle Groovy, Java 17 bis 24, PostgreSQL bei aiven.io).
 
+## Live-Version
+
+| Was | Adresse |
+|---|---|
+| Frontend (GitHub Pages) | https://tipprunde-team.github.io/tipprunde-web/ |
+| Backend-API (Heroku) | https://tipprunde-rest-b06734b76aad.herokuapp.com/api |
+| Backend-Status | https://tipprunde-rest-b06734b76aad.herokuapp.com/actuator/health |
+
+Das Backend läuft auf einem Eco-Dyno und schläft nach 30 Minuten ohne Aufruf ein. Der erste Aufruf danach dauert einige Sekunden. Die Aufrufe zum Testen gegen das Live-Backend stehen in `docs/rest-client/online.http`.
+
 ## Setup unter Windows
 
 Voraussetzung: JDK 17 oder neuer (`java -version`). Gradle muss nicht installiert werden, der Wrapper `gradlew.bat` lädt es selbst.
@@ -170,6 +180,14 @@ Die CI hat keinen Zugriff auf die aiven-Datenbank. Neue Tests deshalb ohne Daten
 Testbericht: Actions › Lauf öffnen › Artifacts › `test-reports`
 
 Lokal testen: `.\gradlew.bat test`
+
+### Testabdeckung (JaCoCo)
+
+`./gradlew test` erzeugt automatisch einen Abdeckungsbericht mit JaCoCo (Zeilen- und Verzweigungsabdeckung).
+
+- Lokal: `build/reports/jacoco/test/html/index.html` im Browser öffnen
+- In der CI: Der Bericht liegt nach jedem Lauf als Artefakt `jacoco-report` an der Workflow-Ausführung (Actions → Lauf → Artifacts)
+- Der Bericht ist eine Messung und kein Grenzwert. Der Build schlägt bei niedriger Abdeckung nicht fehl.
 
 ## Deployment auf Heroku
 
