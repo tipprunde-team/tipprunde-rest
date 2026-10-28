@@ -61,7 +61,7 @@ public class PostgresUserManagerImpl implements UserManager {
                 try (ResultSet rs = ps.executeQuery()) {
                     rs.next();
                     long id = rs.getLong(1);
-                    log.info("Nutzer {} registriert", id);
+                    log.info("User registered: userId={}", id);
                     return new UserResponse(id, request.email(), request.username());
                 }
             } catch (SQLException e) {

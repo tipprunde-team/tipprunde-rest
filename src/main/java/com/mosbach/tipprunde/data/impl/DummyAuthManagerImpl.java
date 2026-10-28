@@ -3,6 +3,8 @@ package com.mosbach.tipprunde.data.impl;
 import java.util.Locale;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,11 +15,14 @@ import com.mosbach.tipprunde.error.ApiException;
 import com.mosbach.tipprunde.model.auth.TokenAnswer;
 import com.mosbach.tipprunde.model.user.UserSummary;
 import com.mosbach.tipprunde.security.JwtService;
+import com.mosbach.tipprunde.security.LogMasking;
 
 // Login gegen einen Testnutzer im Speicher, aktiv bei app.auth.manager=dummy
 @Component
 @ConditionalOnProperty(name = "app.auth.manager", havingValue = "dummy", matchIfMissing = true)
 public class DummyAuthManagerImpl implements AuthManager {
+
+    private static final Logger log = LoggerFactory.getLogger(DummyAuthManagerImpl.class);
 
     private static final long TEST_USER_ID = 1L;
     private static final String TEST_EMAIL = "test@tippseite.de";
@@ -40,9 +45,11 @@ public class DummyAuthManagerImpl implements AuthManager {
         // Passwort immer prüfen, damit unbekannte E-Mails nicht schneller antworten
         boolean passwordOk = passwordEncoder.matches(password == null ? "" : password, testPasswordHash);
         if (!TEST_EMAIL.equals(normalizedEmail) || !passwordOk) {
+            log.warn("Login failed: unknown account or wrong password for {}", LogMasking.maskEmail(normalizedEmail));
             throw new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "E-Mail oder Passwort ist falsch.");
         }
         String token = jwtService.createToken(TEST_USER_ID, TEST_USERNAME);
+        log.info("Login successful: userId={}", TEST_USER_ID);
         return new TokenAnswer(token, jwtService.getExpiresAt(token), new UserSummary(TEST_USER_ID, TEST_USERNAME));
     }
 
