@@ -9,6 +9,8 @@ import java.util.Optional;
 
 import javax.sql.DataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,11 +21,14 @@ import com.mosbach.tipprunde.error.ApiException;
 import com.mosbach.tipprunde.model.auth.TokenAnswer;
 import com.mosbach.tipprunde.model.user.UserSummary;
 import com.mosbach.tipprunde.security.JwtService;
+import com.mosbach.tipprunde.security.LogMasking;
 
 // Login gegen die Tabelle users, aktiv bei app.auth.manager=postgres
 @Component
 @ConditionalOnProperty(name = "app.auth.manager", havingValue = "postgres")
 public class PostgresAuthManagerImpl implements AuthManager {
+
+    private static final Logger log = LoggerFactory.getLogger(PostgresAuthManagerImpl.class);
 
     private static final String SQL_FIND_USER =
             "SELECT id, username, password_hash FROM users WHERE email = ?";
@@ -52,15 +57,19 @@ public class PostgresAuthManagerImpl implements AuthManager {
             try (ResultSet result = statement.executeQuery()) {
                 if (!result.next()) {
                     passwordEncoder.matches(rawPassword, dummyHash);
+                    // Grund nur im Log, die Antwort bleibt für beide Fälle gleich
+                    log.warn("Login failed: unknown account {}", LogMasking.maskEmail(normalizedEmail));
                     throw unauthorized();
                 }
                 long userId = result.getLong("id");
                 String username = result.getString("username");
                 String passwordHash = result.getString("password_hash");
                 if (!passwordEncoder.matches(rawPassword, passwordHash)) {
+                    log.warn("Login failed: wrong password, userId={}", userId);
                     throw unauthorized();
                 }
                 String token = jwtService.createToken(userId, username);
+                log.info("Login successful: userId={}", userId);
                 return new TokenAnswer(token, jwtService.getExpiresAt(token), new UserSummary(userId, username));
             }
         } catch (SQLException e) {

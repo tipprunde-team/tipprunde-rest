@@ -1,5 +1,6 @@
 package com.mosbach.tipprunde.controller;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -9,6 +10,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -20,6 +22,10 @@ import com.mosbach.tipprunde.error.ApiException;
 import com.mosbach.tipprunde.error.GlobalExceptionHandler;
 import com.mosbach.tipprunde.model.auth.TokenAnswer;
 import com.mosbach.tipprunde.model.user.UserSummary;
+
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 
 // Standalone-Test mit Platzhalter-Manager, daher keine Datenbank nötig
 class AuthControllerTest {
@@ -83,6 +89,25 @@ class AuthControllerTest {
     void logoutWithInvalidTokenReturns401() throws Exception {
         mockMvc.perform(delete("/api/auth").header("Authorization", "Bearer manipuliert"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void controllerNeverLogsTheEmailOrThePassword() throws Exception {
+        Logger logger = (Logger) LoggerFactory.getLogger(AuthController.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            login("{\"email\":\"test@tippseite.de\",\"password\":\"falsch123\"}");
+            login("{\"email\":\"test@tippseite.de\",\"password\":\"Test1234!\"}");
+        } finally {
+            logger.detachAppender(appender);
+        }
+
+        String all = appender.list.stream().map(ILoggingEvent::getFormattedMessage).reduce("", (a, b) -> a + "\n" + b);
+        assertFalse(all.contains("test@tippseite.de"), all);
+        assertFalse(all.contains("falsch123"), all);
+        assertFalse(all.contains("Test1234!"), all);
     }
 
     // Platzhalter statt Datenbank: kennt genau einen Nutzer und ein Token

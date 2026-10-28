@@ -35,9 +35,7 @@ public class AuthController {
 
     @PostMapping
     public TokenAnswer logOn(@Valid @RequestBody LogOn logOn) {
-        // 1. loggen (nie Passwort oder Token)
-        log.info("Login-Versuch für {}", logOn.email());
-        // 2. Manager arbeiten lassen, 3. Antwort zurückgeben
+        // Erfolg und Fehlschlag protokolliert der Manager (E-Mail nur maskiert, nie Passwort oder Token)
         return authManager.logOn(logOn.email(), logOn.password());
     }
 
@@ -48,7 +46,7 @@ public class AuthController {
         Long userId = authManager.getUserIdFromToken(token)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED",
                         "Nicht angemeldet oder Sitzung abgelaufen."));
-        log.info("Logout von Nutzer {}", userId);
+        log.info("Logout: userId={}", userId);
         authManager.logOff(token);
     }
 

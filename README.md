@@ -64,6 +64,7 @@ Optional:
 | `DB_POOL_SIZE` | höchstens so viele Datenbankverbindungen je Instanz (alle teilen sich eine Free-Datenbank) | `3` |
 | `FOOTBALL_DATA_TOKEN` | API-Key von football-data.org (später für den Spielplan-Import) | – |
 | `DB_STARTUP_CHECK` | Verbindung zur Datenbank beim Start prüfen | `true` |
+| `LOG_LEVEL` | Log-Level der Anwendung (`INFO`, `DEBUG`, ...), siehe Abschnitt Logging | `INFO` |
 
 Beim Start prüft das Backend die Konfiguration (`StartupConfigCheck`): Fehlt eine Variable, steht noch ein Platzhalter darin oder ist die Datenbank nicht erreichbar, bricht der Start mit einer Zeile `Configuration error: …` bzw. `Database not reachable at …` ab. Läuft alles, steht im Log `Database connection OK`. Fehlt `JWT_SECRET` oder ist es kürzer als 32 Zeichen, bricht der Start ebenfalls ab. Die Verbindungsprüfung lässt sich bei Bedarf mit `DB_STARTUP_CHECK=false` abschalten.
 
@@ -188,6 +189,23 @@ Lokal testen: `.\gradlew.bat test`
 - Lokal: `build/reports/jacoco/test/html/index.html` im Browser öffnen
 - In der CI: Der Bericht liegt nach jedem Lauf als Artefakt `jacoco-report` an der Workflow-Ausführung (Actions → Lauf → Artifacts)
 - Der Bericht ist eine Messung und kein Grenzwert. Der Build schlägt bei niedriger Abdeckung nicht fehl.
+
+## Logging
+
+Das Backend schreibt sicherheitsrelevante Ereignisse in die Konsole (NFA-24). Lokal steht das im Fenster von `bootRun`, auf Heroku im Dashboard unter **More › View logs**. Jede Zeile hat das Format `Zeitpunkt LEVEL [Klasse] Meldung`, die Meldungen sind englisch.
+
+| Ereignis | Level | Beispiel |
+|---|---|---|
+| Start und Datenbankprüfung | `INFO` | `Database connection OK (host)` |
+| Login erfolgreich | `INFO` | `Login successful: userId=7` |
+| Login fehlgeschlagen | `WARN` | `Login failed: wrong password, userId=7` oder `Login failed: unknown account a***@example.de` |
+| Abgelehnter Zugriff (401, 403) | `WARN` | `Access denied: status=403 code=NOT_A_MEMBER method=GET path=/api/groups/3 user=7` |
+| Gruppenaktionen | `INFO` / `WARN` | `Group created: groupId=3, userId=7`, `Join rejected: ALREADY_MEMBER groupId=3, userId=7` |
+| Unerwarteter Fehler (500) | `ERROR` | `Unexpected error` mit Stacktrace |
+
+Nie geloggt werden Passwörter, Tokens, Einladungscodes, Zugangsdaten und der Request-Body. E-Mail-Adressen erscheinen höchstens maskiert (`a***@example.de`), der Pfad steht ohne Query-String im Log, damit auch ein Token in der URL nicht auftaucht. Fehlgeschlagene Logins liefern in der Antwort immer dieselbe Meldung, der Grund steht nur im Log.
+
+Das Log-Level der Anwendung ist über die Umgebungsvariable `LOG_LEVEL` einstellbar (Standard `INFO`, z. B. `DEBUG` für mehr Details). Auf Heroku wird sie unter Settings › Config Vars gesetzt, die App startet danach neu.
 
 ## Deployment auf Heroku
 
