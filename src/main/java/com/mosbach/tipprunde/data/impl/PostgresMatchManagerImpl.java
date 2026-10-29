@@ -23,7 +23,7 @@ import com.mosbach.tipprunde.model.match.MatchStatus;
 @ConditionalOnProperty(name = "app.match.manager", havingValue = "postgres")
 public class PostgresMatchManagerImpl implements MatchManager {
 
-    private static final String COLUMNS =
+    static final String COLUMNS =
             "id, external_id, matchday, kickoff_utc, status, home_team, home_team_short, home_crest, "
             + "away_team, away_team_short, away_crest, home_goals, away_goals, manually_corrected, updated_at";
 
@@ -87,7 +87,7 @@ public class PostgresMatchManagerImpl implements MatchManager {
     }
 
     // One row of table matches as record; TIMESTAMPTZ is read as UTC instant
-    private static Match toMatch(ResultSet row) throws SQLException {
+    static Match toMatch(ResultSet row) throws SQLException {
         return new Match(
                 row.getLong("id"),
                 row.getLong("external_id"),
