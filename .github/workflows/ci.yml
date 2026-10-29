@@ -45,3 +45,12 @@ jobs:
           name: test-reports
           path: build/reports/tests/test/
           retention-days: 14
+
+      # JaCoCo-Abdeckungsbericht als Artefakt (Qualitätsmetrik), auch bei Fehlern
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: jacoco-report
+          path: build/reports/jacoco/test/html/
+          retention-days: 14
