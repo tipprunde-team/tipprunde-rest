@@ -65,6 +65,7 @@ Optional:
 | `FOOTBALL_DATA_TOKEN` | API-Key von football-data.org (später für den Spielplan-Import) | – |
 | `DB_STARTUP_CHECK` | Verbindung zur Datenbank beim Start prüfen | `true` |
 | `LOG_LEVEL` | Log-Level der Anwendung (`INFO`, `DEBUG`, ...), siehe Abschnitt Logging | `INFO` |
+| `QUEUE_URL` | AMQP-URL der CloudAMQP-Instanz (`amqps://…`), schaltet den Empfang der Spiele aus dem Match-Service ein, siehe Abschnitt Spiele aus der Queue | leer, Empfang aus |
 
 Beim Start prüft das Backend die Konfiguration (`StartupConfigCheck`): Fehlt eine Variable, steht noch ein Platzhalter darin oder ist die Datenbank nicht erreichbar, bricht der Start mit einer Zeile `Configuration error: …` bzw. `Database not reachable at …` ab. Läuft alles, steht im Log `Database connection OK`. Fehlt `JWT_SECRET` oder ist es kürzer als 32 Zeichen, bricht der Start ebenfalls ab. Die Verbindungsprüfung lässt sich bei Bedarf mit `DB_STARTUP_CHECK=false` abschalten.
 
@@ -207,6 +208,33 @@ Nie geloggt werden Passwörter, Tokens, Einladungscodes, Zugangsdaten und der Re
 
 Das Log-Level der Anwendung ist über die Umgebungsvariable `LOG_LEVEL` einstellbar (Standard `INFO`, z. B. `DEBUG` für mehr Details). Auf Heroku wird sie unter Settings › Config Vars gesetzt, die App startet danach neu.
 
+## Spiele aus der Queue (Match-Service)
+
+Der Match-Service (Repo `tipprunde-matches`) gleicht den Spielplan mit football-data.org ab und schickt für jedes Spiel ein Event `MATCH_UPDATED` in die Queue `tipprunde.match-events` (RabbitMQ bei CloudAMQP, Plan Little Lemur, Region EU-West-1). Der Core liest die Queue (`MatchEventListener`) und speichert die Spiele in der Tabelle `matches`.
+
+Die Übernahme ist idempotent (Idempotent Receiver), Schlüssel ist `external_id`:
+
+| Fall | Ergebnis im Log (`outcome`) |
+|---|---|
+| Spiel noch nicht in der Tabelle | `INSERTED` |
+| Spiel vorhanden, Stand gleich | `UNCHANGED`, keine Schreiboperation |
+| Spiel vorhanden, Status, Anstoß oder Ergebnis geändert | `UPDATED` |
+| Spiel wurde von Hand korrigiert (`manually_corrected`) | `MANUALLY_CORRECTED`, wird nie überschrieben |
+
+Ein Ergebnis wird nur bei Status `FINISHED` übernommen (Tore 0 bis 20, Stand nach 90 Minuten). `resultChanged=true` im Log zeigt an, dass für dieses Spiel Punkte zu berechnen sind (F-AH-3). Ungültige Nachrichten werden mit `Match event rejected` verworfen und nicht neu zugestellt; der nächste Abgleich schickt die Spiele ohnehin erneut.
+
+Der Empfang ist nur aktiv, wenn `QUEUE_URL` gesetzt ist und `MATCH_MANAGER` auf `postgres` steht. Ohne `QUEUE_URL` startet der Core wie bisher, die CI braucht keine Queue. Die URL enthält das Passwort und gehört nur in die Umgebungsvariable bzw. Config Var, nie ins Repo, in den Chat oder in KI-Tools. Ist sie einmal öffentlich geworden: bei CloudAMQP **Rotate password** und die neue URL überall neu eintragen.
+
+Lokal setzen (PowerShell, die URL wird nicht angezeigt):
+
+```powershell
+$s = Read-Host "AMQP-URL einfuegen" -AsSecureString
+[Environment]::SetEnvironmentVariable("QUEUE_URL", [System.Net.NetworkCredential]::new("", $s).Password, "User")
+Remove-Variable s
+```
+
+Danach ein neues Terminal öffnen. Beim Start steht im Log eine Zeile `Created new connection: rabbitConnectionFactory…`, je verarbeitetem Spiel eine Zeile `Match event processed: externalId=… outcome=…`. Die Queue und ihre Nachrichten sind im CloudAMQP-Dashboard unter **RabbitMQ Manager › Queues and Streams** zu sehen.
+
 ## Deployment auf Heroku
 
 Der Core-Service läuft auf Heroku (Eco-Dyno) und wird über die GitHub-Verknüpfung im Heroku-Dashboard deployt, ohne Heroku CLI. Jeder Merge auf `main` geht nach grüner CI automatisch live.
@@ -236,6 +264,7 @@ Heroku baut mit `./gradlew build -x test`; die Tests laufen vorher in der CI.
 | `JWT_SECRET` | eigener Wert für Heroku, mindestens 32 Zeichen |
 | `CORS_ALLOWED_ORIGINS` | Live-URL der MPA, z. B. `https://tipprunde-team.github.io` |
 | `DB_POOL_SIZE` | optional, Standard `3` |
+| `QUEUE_URL` | AMQP-URL von CloudAMQP (Instanz `tipprunde-queue`), dieselbe wie beim Match-Service |
 
 `PORT` setzt Heroku selbst.
 
