@@ -46,8 +46,9 @@ public class MatchEventListener {
             throw new AmqpRejectAndDontRequeueException("Invalid match event", e);
         }
         UpsertResult result = syncManager.upsert(update);
-        log.info("Match event processed: externalId={} status={} outcome={} matchId={} resultChanged={}",
-                update.externalId(), update.status(), result.outcome(), result.matchId(), result.resultChanged());
+        log.info("Match event processed: externalId={} status={} outcome={} matchId={} resultChanged={} tipsScored={}",
+                update.externalId(), update.status(), result.outcome(), result.matchId(), result.resultChanged(),
+                result.tipsScored());
         return result;
     }
 }

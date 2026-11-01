@@ -27,7 +27,7 @@ class MatchEventListenerTest {
     private final List<MatchUpdate> saved = new ArrayList<>();
     private final MatchEventListener listener = new MatchEventListener(update -> {
         saved.add(update);
-        return new UpsertResult(Outcome.INSERTED, 42L, update.status() == MatchStatus.FINISHED);
+        return new UpsertResult(Outcome.INSERTED, 42L, update.status() == MatchStatus.FINISHED, 0);
     }, JsonMapper.builder().build());
 
     private static byte[] event(String file) throws IOException {

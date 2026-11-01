@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.sql.DataSource;
 
@@ -15,12 +17,15 @@ import org.springframework.stereotype.Component;
 
 import com.mosbach.tipprunde.data.api.MatchSyncManager;
 import com.mosbach.tipprunde.domain.MatchUpsertRules;
+import com.mosbach.tipprunde.domain.MatchUpsertRules.Scoring;
+import com.mosbach.tipprunde.domain.PointsCalculator;
 import com.mosbach.tipprunde.model.match.Match;
 import com.mosbach.tipprunde.model.match.MatchUpdate;
 import com.mosbach.tipprunde.model.match.UpsertResult;
 import com.mosbach.tipprunde.model.match.UpsertResult.Outcome;
 
-// Übernimmt Spiele aus der Queue in die Tabelle matches; Schlüssel ist external_id (wie das Seed-Skript)
+// Übernimmt Spiele aus der Queue in die Tabelle matches; Schlüssel ist external_id (wie das Seed-Skript).
+// In derselben Transaktion werden die Punkte der Tipps gesetzt (US-24), Spiel und Punkte passen also immer zusammen.
 @Component
 @ConditionalOnProperty(name = "app.match.manager", havingValue = "postgres")
 public class PostgresMatchSyncManagerImpl implements MatchSyncManager {
@@ -38,6 +43,18 @@ public class PostgresMatchSyncManagerImpl implements MatchSyncManager {
             "UPDATE matches SET matchday = ?, kickoff_utc = ?, status = ?, home_team = ?, home_team_short = ?, "
             + "home_crest = ?, away_team = ?, away_team_short = ?, away_crest = ?, home_goals = ?, away_goals = ?, "
             + "updated_at = now() WHERE external_id = ? AND manually_corrected = FALSE";
+
+    // Tipps eines Spiels sperren, damit eine zweite Wertung desselben Spiels wartet
+    private static final String SELECT_ALL_TIPS =
+            "SELECT id, home_goals, away_goals, points FROM tips WHERE match_id = ? FOR UPDATE";
+
+    private static final String SELECT_UNSCORED_TIPS =
+            "SELECT id, home_goals, away_goals, points FROM tips WHERE match_id = ? AND points IS NULL FOR UPDATE";
+
+    private static final String UPDATE_TIP_POINTS = "UPDATE tips SET points = ? WHERE id = ?";
+
+    private static final String CLEAR_TIP_POINTS =
+            "UPDATE tips SET points = NULL WHERE match_id = ? AND points IS NOT NULL";
 
     private final DataSource dataSource;
 
@@ -60,14 +77,66 @@ public class PostgresMatchSyncManagerImpl implements MatchSyncManager {
                     case UPDATED -> update(con, update);
                     default -> { }
                 }
+                int tipsScored = applyScoring(con, matchId, MatchUpsertRules.scoring(existing, update, outcome),
+                        outcome == Outcome.UPDATED ? update.homeGoals() : existing == null ? null : existing.homeGoals(),
+                        outcome == Outcome.UPDATED ? update.awayGoals() : existing == null ? null : existing.awayGoals());
                 con.commit();
-                return new UpsertResult(outcome, matchId, resultChanged);
+                return new UpsertResult(outcome, matchId, resultChanged, tipsScored);
             } catch (SQLException | RuntimeException e) {
                 con.rollback();
                 throw e;
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Database error while saving match " + update.externalId(), e);
+        }
+    }
+
+    // Setzt oder löscht die Punkte der Tipps zu diesem Spiel; Rückgabe: Anzahl geänderter Tipps
+    private static int applyScoring(Connection con, Long matchId, Scoring scoring, Integer home, Integer away)
+            throws SQLException {
+        if (matchId == null) {
+            return 0;
+        }
+        return switch (scoring) {
+            case ALL -> scoreTips(con, SELECT_ALL_TIPS, matchId, home, away);
+            case MISSING -> scoreTips(con, SELECT_UNSCORED_TIPS, matchId, home, away);
+            case CLEAR -> clearPoints(con, matchId);
+            case NONE -> 0;
+        };
+    }
+
+    private static int scoreTips(Connection con, String select, long matchId, int home, int away) throws SQLException {
+        List<long[]> changed = new ArrayList<>(); // je Eintrag: Tipp-ID und neue Punkte
+        try (PreparedStatement ps = con.prepareStatement(select)) {
+            ps.setLong(1, matchId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int points = PointsCalculator.points(rs.getInt("home_goals"), rs.getInt("away_goals"), home, away);
+                    Integer current = rs.getObject("points", Integer.class);
+                    if (current == null || current != points) {
+                        changed.add(new long[] {rs.getLong("id"), points});
+                    }
+                }
+            }
+        }
+        if (changed.isEmpty()) {
+            return 0;
+        }
+        try (PreparedStatement ps = con.prepareStatement(UPDATE_TIP_POINTS)) {
+            for (long[] tip : changed) {
+                ps.setInt(1, (int) tip[1]);
+                ps.setLong(2, tip[0]);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
+        return changed.size();
+    }
+
+    private static int clearPoints(Connection con, long matchId) throws SQLException {
+        try (PreparedStatement ps = con.prepareStatement(CLEAR_TIP_POINTS)) {
+            ps.setLong(1, matchId);
+            return ps.executeUpdate();
         }
     }
 

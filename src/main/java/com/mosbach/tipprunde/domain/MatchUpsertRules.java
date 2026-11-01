@@ -10,6 +10,14 @@ import com.mosbach.tipprunde.model.match.UpsertResult.Outcome;
 // Reine Regeln für die idempotente Übernahme von Spielen aus der Queue (Idempotent Receiver)
 public final class MatchUpsertRules {
 
+    // Was mit den Punkten der Tipps zu einem Spiel passiert
+    public enum Scoring {
+        ALL,        // Ergebnis neu oder geändert: alle Tipps neu werten (FA-45)
+        MISSING,    // Ergebnis steht schon: nur Tipps ohne Punkte werten (z. B. alte Spiele aus dem Seed)
+        CLEAR,      // Spiel nicht mehr beendet, z. B. abgesagt: Punkte entfernen (FA-28)
+        NONE
+    }
+
     private MatchUpsertRules() {
     }
 
@@ -33,6 +41,27 @@ public final class MatchUpsertRules {
                 || existing.status() != MatchStatus.FINISHED
                 || !Objects.equals(existing.homeGoals(), update.homeGoals())
                 || !Objects.equals(existing.awayGoals(), update.awayGoals());
+    }
+
+    // Gewertet wird immer das Ergebnis, das danach in der Tabelle steht: bei manuell korrigierten
+    // oder unveränderten Spielen das gespeicherte, sonst das neue aus dem Event
+    public static Scoring scoring(Match existing, MatchUpdate update, Outcome outcome) {
+        switch (outcome) {
+            case INSERTED:
+                return Scoring.NONE; // neues Spiel, dazu gibt es noch keine Tipps
+            case UPDATED:
+                if (isScorable(update.status(), update.homeGoals(), update.awayGoals())) {
+                    return resultChanged(existing, update) ? Scoring.ALL : Scoring.MISSING;
+                }
+                return existing.status() == MatchStatus.FINISHED || existing.hasResult() ? Scoring.CLEAR : Scoring.NONE;
+            default:
+                return isScorable(existing.status(), existing.homeGoals(), existing.awayGoals())
+                        ? Scoring.MISSING : Scoring.NONE;
+        }
+    }
+
+    private static boolean isScorable(MatchStatus status, Integer home, Integer away) {
+        return status == MatchStatus.FINISHED && home != null && away != null;
     }
 
     static boolean sameState(Match existing, MatchUpdate update) {

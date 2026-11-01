@@ -23,7 +23,7 @@ class MessagingConfigTest {
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(JacksonAutoConfiguration.class, RabbitAutoConfiguration.class))
             .withUserConfiguration(QueueConfig.class, MatchEventListener.class)
-            .withBean(MatchSyncManager.class, () -> update -> new UpsertResult(Outcome.UNCHANGED, 1L, false))
+            .withBean(MatchSyncManager.class, () -> update -> new UpsertResult(Outcome.UNCHANGED, 1L, false, 0))
             .withPropertyValues("app.queue.name=tipprunde.match-events",
                     "spring.rabbitmq.listener.simple.auto-startup=false");
 

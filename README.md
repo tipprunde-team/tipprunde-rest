@@ -235,6 +235,23 @@ Remove-Variable s
 
 Danach ein neues Terminal öffnen. Beim Start steht im Log eine Zeile `Created new connection: rabbitConnectionFactory…`, je verarbeitetem Spiel eine Zeile `Match event processed: externalId=… outcome=…`. Die Queue und ihre Nachrichten sind im CloudAMQP-Dashboard unter **RabbitMQ Manager › Queues and Streams** zu sehen.
 
+## Punkte (US-24)
+
+Sobald ein Spiel aus der Queue mit Ergebnis als `FINISHED` ankommt, bekommt jeder Tipp dazu Punkte (FA-45). Die Regel steckt als reine Funktion in `PointsCalculator` (FA-41 bis FA-44), gewertet wird das Ergebnis nach 90 Minuten (FA-40):
+
+| Fall | Beispiel bei Ergebnis 3:1 | Punkte |
+|---|---|---|
+| Exaktes Ergebnis | 3:1 | 4 |
+| Richtige Tordifferenz | 2:0 | 3 |
+| Richtige Tendenz | 4:0 | 2 |
+| Falsch | 1:1 | 0 |
+
+Unentschieden: Ein Tipp 1:1 bei 2:2 hat dieselbe Tordifferenz (0) und bekommt 3 Punkte.
+
+Spiel und Punkte werden in derselben Transaktion geschrieben (`PostgresMatchSyncManagerImpl`), die Punkte stehen in `tips.points`. Ändert sich das Ergebnis, werden alle Tipps neu gewertet. Kommt ein bereits beendetes Spiel erneut, werden nur Tipps ohne Punkte nachgetragen, so bekommen auch ältere Spiele ihre Punkte. Wird ein beendetes Spiel abgesagt, werden seine Punkte gelöscht (FA-28). Manuell korrigierte Spiele werden mit dem gespeicherten Ergebnis gewertet. Im Log steht je Spiel `tipsScored=…`, die Zahl der Tipps, deren Punkte sich geändert haben.
+
+Die Punkte erscheinen als `myPoints` in `GET /api/groups/{groupId}/matches` (US-22) und als Summe `myPoints` in `GET /api/groups`. Prüfen mit `docs/rest-client/matches.http`, Fall 8.
+
 ## Deployment auf Heroku
 
 Der Core-Service läuft auf Heroku (Eco-Dyno) und wird über die GitHub-Verknüpfung im Heroku-Dashboard deployt, ohne Heroku CLI. Jeder Merge auf `main` geht nach grüner CI automatisch live.
