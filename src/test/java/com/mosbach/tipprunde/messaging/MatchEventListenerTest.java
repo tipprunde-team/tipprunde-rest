@@ -86,4 +86,12 @@ class MatchEventListenerTest {
                         + "\"status\":\"WHATEVER\",\"homeTeam\":{\"name\":\"A\"},\"awayTeam\":{\"name\":\"B\"}}")));
         assertEquals(0, saved.size());
     }
+
+    @Test
+    void eventWithoutStatusIsRejectedInsteadOfNullPointerException() {
+        assertThrows(AmqpRejectAndDontRequeueException.class, () -> listener.handle(json(
+                "{\"type\":\"MATCH_UPDATED\",\"externalId\":1,\"matchday\":8,\"kickoffUtc\":\"2026-10-30T19:30:00Z\","
+                        + "\"homeTeam\":{\"name\":\"A\"},\"awayTeam\":{\"name\":\"B\"}}")));
+        assertEquals(0, saved.size());
+    }
 }

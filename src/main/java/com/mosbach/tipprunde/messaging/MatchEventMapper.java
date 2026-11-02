@@ -13,7 +13,8 @@ public final class MatchEventMapper {
         if (event == null || !MatchEvent.TYPE.equals(event.type())) {
             throw new IllegalArgumentException("Unsupported event type");
         }
-        if (event.externalId() == null || event.externalId() <= 0 || event.matchday() == null
+        // Status fehlt: ablehnen, sonst wirft MatchStatus.valueOf eine NullPointerException (Review #31)
+        if (event.externalId() == null || event.externalId() <= 0 || event.status() == null || event.matchday() == null
                 || event.matchday() < 1 || event.matchday() > 34 || event.kickoffUtc() == null
                 || event.homeTeam() == null || event.awayTeam() == null
                 || isBlank(event.homeTeam().name()) || isBlank(event.awayTeam().name())) {

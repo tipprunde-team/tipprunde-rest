@@ -1,3 +1,5 @@
+-- SUPERSEDED (Sprint 3, F-AH-2): matches now come from tipprunde-matches via the queue tipprunde.match-events.
+-- Kept only for local tests without the queue; do not run it against aiven any more.
 -- Transitional seed until the match service exists (Sprint 3).
 -- Source: football-data.org, Bundesliga matchday 6 (finished) and 7 (upcoming), fetched 2026-10-19.
 -- Idempotent: upsert via external_id, safe to run any number of times.
