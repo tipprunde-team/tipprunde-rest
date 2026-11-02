@@ -169,6 +169,20 @@ Der `inviteCode` steht in den Gruppendetails nur für Admins in der Antwort, bei
 
 Für alle Pfade unter `/api/groups/{groupId}/**` prüft `GroupAccess` zentral die Mitgliedschaft: `requireMember` antwortet mit `404 GROUP_NOT_FOUND` oder `403 NOT_A_MEMBER`, `requireAdmin` zusätzlich mit `403 NOT_GROUP_ADMIN`. Die Aufrufe zum Testen stehen in `docs/rest-client/groups.http`.
 
+## Rangliste
+
+`GET /api/groups/{groupId}/ranking` liefert die Rangliste einer Gruppe, nur für Mitglieder (Token nötig).
+
+| Parameter | Bedeutung |
+|---|---|
+| `matchday` (optional, 1 bis 34) | nur die Tipps dieses Spieltags zählen. Ohne Parameter kommt die Gesamtrangliste, `matchday` ist dann `null` |
+
+Antwort `200`: `{groupId, matchday, ranking[{rank, userId, username, points, exactTips}]}`. Alle Mitglieder stehen in der Liste, auch ohne Tipps (0 Punkte). `exactTips` ist die Zahl der Tipps mit voller Punktzahl (4 Punkte nach dem Schema 4/3/2/0).
+
+Rangregel: Gleiche Punkte bekommen den gleichen Rang, danach wird übersprungen (1, 2, 2, 4). Bei gleichem Rang sind die Mitglieder alphabetisch nach Benutzername sortiert. Die Regel steht in `domain/RankingRules` und ist ohne Datenbank getestet. Fehler: `400 VALIDATION_ERROR` bei einem Spieltag außerhalb von 1 bis 34, `403 NOT_A_MEMBER`, `404 GROUP_NOT_FOUND`, `401` ohne Token. Die Mitgliedschaft wird vor der Eingabe geprüft.
+
+Die Punkte kommen aus `tips.points`. Solange die Punkteberechnung noch keine Punkte setzt, haben alle 0 Punkte und Rang 1. Für Tests mit Beispielpunkten gibt es `docs/sql/test-ranking.sql`, die Aufrufe stehen in `docs/rest-client/ranking.http`.
+
 ## Frontend lokal
 
 Das Frontend (Repo `tipprunde-web`) wird lokal auf Port 5500 ausgeliefert, z. B. mit der VS-Code-Erweiterung Live Server. Andere Origins lassen sich über `CORS_ALLOWED_ORIGINS` freigeben.
