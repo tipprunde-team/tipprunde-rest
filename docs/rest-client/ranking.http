@@ -1,0 +1,127 @@
+# Rangliste testen (VS Code, REST Client), Postman-Fälle 35 und 36. Backend und Datenbank müssen laufen.
+# Konten und Gruppe tragen den Präfix TEST. Beim zweiten Durchlauf antwortet Fall 1 mit 409, das ist erwartet.
+# Ablauf: Fall 1 bis 4 einmal senden, dann docs/sql/test-ranking.sql mit SqlRunner.java (oder pgAdmin) ausführen, dann Fall 35 ff.
+
+@baseUrl = http://localhost:8080/api
+
+### 1a Konto a anlegen (409 beim zweiten Mal ist in Ordnung)
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{ "email": "test-rang-a@example.de", "username": "TEST_rang_a", "password": "Geheim123" }
+
+### 1b Konto b anlegen
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{ "email": "test-rang-b@example.de", "username": "TEST_rang_b", "password": "Geheim123" }
+
+### 1c Konto c anlegen
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{ "email": "test-rang-c@example.de", "username": "TEST_rang_c", "password": "Geheim123" }
+
+### 1d Konto d anlegen
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{ "email": "test-rang-d@example.de", "username": "TEST_rang_d", "password": "Geheim123" }
+
+### 1e Konto e anlegen, bleibt ohne Gruppe (für Fall 36)
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{ "email": "test-rang-e@example.de", "username": "TEST_rang_e", "password": "Geheim123" }
+
+### 2a Login a, erwartet 200
+# @name loginA
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{ "email": "test-rang-a@example.de", "password": "Geheim123" }
+
+### 2b Login b
+# @name loginB
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{ "email": "test-rang-b@example.de", "password": "Geheim123" }
+
+### 2c Login c
+# @name loginC
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{ "email": "test-rang-c@example.de", "password": "Geheim123" }
+
+### 2d Login d
+# @name loginD
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{ "email": "test-rang-d@example.de", "password": "Geheim123" }
+
+### 2e Login e (Nichtmitglied)
+# @name loginE
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{ "email": "test-rang-e@example.de", "password": "Geheim123" }
+
+### 3 Konto a legt die Gruppe an, erwartet 201 mit inviteCode
+# @name createGroup
+POST {{baseUrl}}/groups
+Authorization: Bearer {{loginA.response.body.token}}
+Content-Type: application/json
+
+{ "name": "TEST Rangliste" }
+
+### 4a Konto b tritt bei, erwartet 200
+POST {{baseUrl}}/groups/join
+Authorization: Bearer {{loginB.response.body.token}}
+Content-Type: application/json
+
+{ "inviteCode": "{{createGroup.response.body.inviteCode}}" }
+
+### 4b Konto c tritt bei
+POST {{baseUrl}}/groups/join
+Authorization: Bearer {{loginC.response.body.token}}
+Content-Type: application/json
+
+{ "inviteCode": "{{createGroup.response.body.inviteCode}}" }
+
+### 4c Konto d tritt bei
+POST {{baseUrl}}/groups/join
+Authorization: Bearer {{loginD.response.body.token}}
+Content-Type: application/json
+
+{ "inviteCode": "{{createGroup.response.body.inviteCode}}" }
+
+### 35 Gesamtrangliste als Mitglied, erwartet 200 (nach test-ranking.sql): Ränge 1, 2, 2, 4
+# a = 7 Punkte (1 exakter Tipp), b = 3, c = 3, d = 0. matchday ist null.
+GET {{baseUrl}}/groups/{{createGroup.response.body.id}}/ranking
+Authorization: Bearer {{loginD.response.body.token}}
+
+### 35b Rangliste für Spieltag 6, erwartet 200 mit denselben Punkten und matchday 6
+GET {{baseUrl}}/groups/{{createGroup.response.body.id}}/ranking?matchday=6
+Authorization: Bearer {{loginB.response.body.token}}
+
+### 35c Rangliste für einen Spieltag ohne Tipps (7), erwartet 200 mit 0 Punkten, alle auf Rang 1
+GET {{baseUrl}}/groups/{{createGroup.response.body.id}}/ranking?matchday=7
+Authorization: Bearer {{loginA.response.body.token}}
+
+### 35d Spieltag außerhalb von 1 bis 34, erwartet 400 VALIDATION_ERROR
+GET {{baseUrl}}/groups/{{createGroup.response.body.id}}/ranking?matchday=35
+Authorization: Bearer {{loginA.response.body.token}}
+
+### 36 Fremde Gruppe (Konto e ist kein Mitglied), erwartet 403 NOT_A_MEMBER
+GET {{baseUrl}}/groups/{{createGroup.response.body.id}}/ranking
+Authorization: Bearer {{loginE.response.body.token}}
+
+### 36b Unbekannte Gruppe, erwartet 404 GROUP_NOT_FOUND
+GET {{baseUrl}}/groups/999999/ranking
+Authorization: Bearer {{loginA.response.body.token}}
+
+### 36c Ohne Token, erwartet 401 UNAUTHORIZED
+GET {{baseUrl}}/groups/{{createGroup.response.body.id}}/ranking
