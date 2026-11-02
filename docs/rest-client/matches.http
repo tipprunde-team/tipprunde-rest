@@ -38,3 +38,7 @@ Authorization: Bearer {{login.response.body.token}}
 GET {{baseUrl}}/groups/{{groupId}}/matches
 
 ### 7 Nichtmitglied: mit einem zweiten Konto einloggen und Fall 1 wiederholen, erwartet 403 NOT_A_MEMBER
+
+### 8 Spieltag mit beendeten Spielen (US-22, US-24), erwartet 200, result gesetzt und bei eigenen Tipps myPoints 4, 3, 2 oder 0
+GET {{baseUrl}}/groups/{{groupId}}/matches?matchday=7
+Authorization: Bearer {{login.response.body.token}}

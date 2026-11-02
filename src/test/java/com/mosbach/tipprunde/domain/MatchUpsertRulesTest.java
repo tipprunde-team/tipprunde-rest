@@ -8,6 +8,7 @@ import java.time.Instant;
 
 import org.junit.jupiter.api.Test;
 
+import com.mosbach.tipprunde.domain.MatchUpsertRules.Scoring;
 import com.mosbach.tipprunde.model.match.Match;
 import com.mosbach.tipprunde.model.match.MatchStatus;
 import com.mosbach.tipprunde.model.match.MatchUpdate;
@@ -69,5 +70,41 @@ class MatchUpsertRulesTest {
         assertFalse(MatchUpsertRules.resultChanged(existing(MatchStatus.UPCOMING, null, null, false),
                 update(MatchStatus.LIVE, null, null)));
         assertFalse(MatchUpsertRules.resultChanged(null, update(MatchStatus.CANCELLED, null, null)));
+    }
+    @Test
+    void newMatchHasNoTipsToScore() {
+        assertEquals(Scoring.NONE, MatchUpsertRules.scoring(null, update(MatchStatus.FINISHED, 2, 3), Outcome.INSERTED));
+    }
+
+    @Test
+    void newOrChangedResultScoresAllTips() {
+        assertEquals(Scoring.ALL, MatchUpsertRules.scoring(existing(MatchStatus.UPCOMING, null, null, false),
+                update(MatchStatus.FINISHED, 2, 3), Outcome.UPDATED));
+        assertEquals(Scoring.ALL, MatchUpsertRules.scoring(existing(MatchStatus.FINISHED, 2, 2, false),
+                update(MatchStatus.FINISHED, 2, 3), Outcome.UPDATED));
+    }
+
+    @Test
+    void sameResultOnlyScoresTipsWithoutPoints() {
+        assertEquals(Scoring.MISSING, MatchUpsertRules.scoring(existing(MatchStatus.FINISHED, 2, 3, false),
+                update(MatchStatus.FINISHED, 2, 3), Outcome.UNCHANGED));
+        assertEquals(Scoring.MISSING, MatchUpsertRules.scoring(existing(MatchStatus.FINISHED, 1, 1, true),
+                update(MatchStatus.FINISHED, 2, 3), Outcome.MANUALLY_CORRECTED));
+    }
+
+    @Test
+    void cancelledAfterFinishedClearsPoints() {
+        assertEquals(Scoring.CLEAR, MatchUpsertRules.scoring(existing(MatchStatus.FINISHED, 2, 3, false),
+                update(MatchStatus.CANCELLED, null, null), Outcome.UPDATED));
+    }
+
+    @Test
+    void unfinishedMatchesAreNotScored() {
+        assertEquals(Scoring.NONE, MatchUpsertRules.scoring(existing(MatchStatus.UPCOMING, null, null, false),
+                update(MatchStatus.LIVE, null, null), Outcome.UPDATED));
+        assertEquals(Scoring.NONE, MatchUpsertRules.scoring(existing(MatchStatus.UPCOMING, null, null, false),
+                update(MatchStatus.CANCELLED, null, null), Outcome.UPDATED));
+        assertEquals(Scoring.NONE, MatchUpsertRules.scoring(existing(MatchStatus.UPCOMING, null, null, false),
+                update(MatchStatus.UPCOMING, null, null), Outcome.UNCHANGED));
     }
 }
