@@ -1,0 +1,244 @@
+# Abnahmetests UC-02 online (AT-02-01 bis AT-02-08, AT-02-11, AT-02-12) gegen Heroku
+# Konten A (Admin), B (Mitglied), C (kein Mitglied), D (Rolle manipuliert) werden bei jedem Durchlauf neu angelegt
+# Testdaten mit Präfix TEST; Aufräumen danach mit abnahme-uc02-obergrenze.sql (Teil B)
+@host = https://tipprunde-rest-b06734b76aad.herokuapp.com
+@baseUrl = {{host}}/api
+@pw = Geheim123
+
+### Konto A anlegen, erwartet 201
+# @name regA
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "test-uc02-a-{{$randomInt 100000 999999}}@example.de",
+  "username": "TEST_uc02_a_{{$randomInt 1000 9999}}",
+  "password": "{{pw}}"
+}
+
+### Konto A einloggen, erwartet 200 mit token
+# @name a
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "{{regA.response.body.email}}",
+  "password": "{{pw}}"
+}
+
+### AT-02-01 Gruppe anlegen, erwartet 201 mit role ADMIN und inviteCode mit mind. 8 Zeichen
+# @name grp
+POST {{baseUrl}}/groups
+Authorization: Bearer {{a.response.body.token}}
+Content-Type: application/json
+
+{ "name": "TEST UC02 WG Test" }
+
+### AT-02-02a Name mit 1 Zeichen, erwartet 201
+POST {{baseUrl}}/groups
+Authorization: Bearer {{a.response.body.token}}
+Content-Type: application/json
+
+{ "name": "T" }
+
+### AT-02-02b Name mit genau 50 Zeichen, erwartet 201
+POST {{baseUrl}}/groups
+Authorization: Bearer {{a.response.body.token}}
+Content-Type: application/json
+
+{ "name": "TEST UC02 fuenfzig Zeichen lang 123456789012345678" }
+
+### AT-02-03a Leerer Name, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/groups
+Authorization: Bearer {{a.response.body.token}}
+Content-Type: application/json
+
+{ "name": "" }
+
+### AT-02-03b Name mit 51 Zeichen, erwartet 400 VALIDATION_ERROR
+POST {{baseUrl}}/groups
+Authorization: Bearer {{a.response.body.token}}
+Content-Type: application/json
+
+{ "name": "TEST UC02 einundfuenfzig Zeichen lang 1234567890123" }
+
+### AT-02-04 Meine Tippgruppen, erwartet 200; TEST UC02 WG Test mit role ADMIN, memberCount 1
+GET {{baseUrl}}/groups
+Authorization: Bearer {{a.response.body.token}}
+
+### AT-02-05 Einladungsvorschau ohne Token, erwartet 200 mit groupName und memberCount 1
+GET {{baseUrl}}/invites/{{grp.response.body.inviteCode}}
+
+### AT-02-06 Falscher Code, erwartet 404 INVITE_INVALID
+GET {{baseUrl}}/invites/FALSCH12345
+
+### Konto B anlegen, erwartet 201
+# @name regB
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "test-uc02-b-{{$randomInt 100000 999999}}@example.de",
+  "username": "TEST_uc02_b_{{$randomInt 1000 9999}}",
+  "password": "{{pw}}"
+}
+
+### Konto B einloggen, erwartet 200 mit token
+# @name b
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "{{regB.response.body.email}}",
+  "password": "{{pw}}"
+}
+
+### AT-02-07 Konto B tritt bei, erwartet 200 mit role MEMBER
+POST {{baseUrl}}/groups/join
+Authorization: Bearer {{b.response.body.token}}
+Content-Type: application/json
+
+{ "inviteCode": "{{grp.response.body.inviteCode}}" }
+
+### AT-02-07 Kontrolle, erwartet memberCount 2
+GET {{baseUrl}}/invites/{{grp.response.body.inviteCode}}
+
+### AT-02-08 Konto B tritt erneut bei, erwartet 409 ALREADY_MEMBER
+POST {{baseUrl}}/groups/join
+Authorization: Bearer {{b.response.body.token}}
+Content-Type: application/json
+
+{ "inviteCode": "{{grp.response.body.inviteCode}}" }
+
+### AT-02-08 Kontrolle, erwartet weiterhin memberCount 2
+GET {{baseUrl}}/invites/{{grp.response.body.inviteCode}}
+
+### Konto D anlegen, erwartet 201
+# @name regD
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "test-uc02-d-{{$randomInt 100000 999999}}@example.de",
+  "username": "TEST_uc02_d_{{$randomInt 1000 9999}}",
+  "password": "{{pw}}"
+}
+
+### Konto D einloggen, erwartet 200 mit token
+# @name d
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "{{regD.response.body.email}}",
+  "password": "{{pw}}"
+}
+
+### AT-02-11 Beitritt mit role ADMIN im Body, erwartet 200 mit role MEMBER
+POST {{baseUrl}}/groups/join
+Authorization: Bearer {{d.response.body.token}}
+Content-Type: application/json
+
+{ "inviteCode": "{{grp.response.body.inviteCode}}", "role": "ADMIN" }
+
+### AT-02-11 Kontrolle als D, erwartet bei D role MEMBER und kein inviteCode in der Antwort
+GET {{baseUrl}}/groups/{{grp.response.body.id}}
+Authorization: Bearer {{d.response.body.token}}
+
+### Konto C anlegen, erwartet 201
+# @name regC
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "test-uc02-c-{{$randomInt 100000 999999}}@example.de",
+  "username": "TEST_uc02_c_{{$randomInt 1000 9999}}",
+  "password": "{{pw}}"
+}
+
+### Konto C einloggen, erwartet 200 mit token
+# @name c
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "{{regC.response.body.email}}",
+  "password": "{{pw}}"
+}
+
+### AT-02-12a Konto C ruft fremde Gruppendetails ab, erwartet 403 NOT_A_MEMBER
+GET {{baseUrl}}/groups/{{grp.response.body.id}}
+Authorization: Bearer {{c.response.body.token}}
+
+### AT-02-12b Unbekannte Gruppen-ID, erwartet 404 GROUP_NOT_FOUND
+GET {{baseUrl}}/groups/999999
+Authorization: Bearer {{c.response.body.token}}
+
+### AT-02-12c Details als Admin A, erwartet 200 mit inviteCode
+GET {{baseUrl}}/groups/{{grp.response.body.id}}
+Authorization: Bearer {{a.response.body.token}}
+
+### AT-02-12d Details als Mitglied B, erwartet 200 ohne inviteCode
+GET {{baseUrl}}/groups/{{grp.response.body.id}}
+Authorization: Bearer {{b.response.body.token}}
+
+# ===== AT-02-10 Obergrenze: erst Teil A von abnahme-uc02-obergrenze.sql ausführen (Gruppe mit 199 Mitgliedern) =====
+
+### Konto E anlegen, erwartet 201
+# @name regE
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "test-uc02-e-{{$randomInt 100000 999999}}@example.de",
+  "username": "TEST_uc02_e_{{$randomInt 1000 9999}}",
+  "password": "{{pw}}"
+}
+
+### Konto E einloggen, erwartet 200 mit token
+# @name e
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "{{regE.response.body.email}}",
+  "password": "{{pw}}"
+}
+
+### AT-02-10a Beitritt bei 199 Mitgliedern, erwartet 200 und memberCount 200
+POST {{baseUrl}}/groups/join
+Authorization: Bearer {{e.response.body.token}}
+Content-Type: application/json
+
+{ "inviteCode": "TESTLIMIT200" }
+
+### Konto F anlegen, erwartet 201
+# @name regF
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "email": "test-uc02-f-{{$randomInt 100000 999999}}@example.de",
+  "username": "TEST_uc02_f_{{$randomInt 1000 9999}}",
+  "password": "{{pw}}"
+}
+
+### Konto F einloggen, erwartet 200 mit token
+# @name f
+POST {{baseUrl}}/auth
+Content-Type: application/json
+
+{
+  "email": "{{regF.response.body.email}}",
+  "password": "{{pw}}"
+}
+
+### AT-02-10b Beitritt bei 200 Mitgliedern, erwartet 409 GROUP_FULL
+POST {{baseUrl}}/groups/join
+Authorization: Bearer {{f.response.body.token}}
+Content-Type: application/json
+
+{ "inviteCode": "TESTLIMIT200" }
+
+### AT-02-10c Kontrolle, erwartet memberCount 200
+GET {{baseUrl}}/invites/TESTLIMIT200
