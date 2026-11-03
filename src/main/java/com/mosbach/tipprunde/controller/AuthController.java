@@ -36,6 +36,7 @@ public class AuthController {
 
     @PostMapping
     public TokenAnswer logOn(@Valid @RequestBody LogOn logOn) {
+        // KI-Log MA-13 "Logging für fehlgeschlagene Logins und abgelehnte Zugriffe ohne Geheimnisse bauen."
         // Erfolg und Fehlschlag protokolliert der Manager (E-Mail nur maskiert, nie Passwort oder Token)
         return authManager.logOn(logOn.email(), logOn.password());
     }
@@ -47,6 +48,7 @@ public class AuthController {
         Long userId = authManager.getUserIdFromToken(token)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED",
                         "Nicht angemeldet oder Sitzung abgelaufen."));
+        // KI-Log MA-13 "Logging für fehlgeschlagene Logins und abgelehnte Zugriffe ohne Geheimnisse bauen."
         log.info("Logout: userId={}", userId);
         authManager.logOff(token);
     }

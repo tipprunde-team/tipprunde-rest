@@ -1,3 +1,5 @@
+# KI-Log MA-07 "Gruppen-Endpunkte mit zentraler Mitgliedschaftsprüfung und Tests nach Plan umsetzen."
+# KI-Log MA-08 "Beitritt per Code mit Obergrenze 200, sicher bei gleichzeitigen Beitritten."
 # Tippgruppen anlegen und auflisten (VS Code, REST Client). Backend und Datenbank müssen laufen.
 # Testdaten in der gemeinsamen Datenbank immer mit Präfix TEST anlegen.
 # Fall 1 legt ein Konto an und loggt es ein, alle weiteren Fälle benutzen dessen Token.

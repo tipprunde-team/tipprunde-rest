@@ -1,3 +1,4 @@
+# KI-Log MA-05 "Registrierung mit Passwort-Hash, Fehlercodes und Tests umsetzen."
 # Registrierung testen (VS Code, REST Client). Backend und Datenbank müssen laufen.
 # Fall 1 bis 3 und 4 legen mit Zufallswerten bzw. festen Werten Nutzer an.
 # Bei Wiederholung: Fall 4a liefert dann 409 statt 201, das ist erwartet.

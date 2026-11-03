@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+// KI-Log MA-02 "Baue das Spring-Boot-Grundgerüst mit DB-Verbindung über Umgebungsvariablen, CORS und /api/ping."
 class PingControllerTest {
 
 	// Standalone: kein Spring-Kontext, daher keine Datenbank noetig

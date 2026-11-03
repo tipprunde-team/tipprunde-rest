@@ -26,6 +26,7 @@ import com.mosbach.tipprunde.model.group.InvitePreview;
 import com.mosbach.tipprunde.security.AuthInterceptor;
 import com.mosbach.tipprunde.security.CurrentUserIdArgumentResolver;
 
+// KI-Log MA-08 "Beitritt per Code mit Obergrenze 200, sicher bei gleichzeitigen Beitritten."
 // Standalone-Test mit echtem AuthInterceptor: die Vorschau muss ohne Token erreichbar sein
 class InviteControllerTest {
 

@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
+// KI-Log MA-03 "Ergänze das Fehlerformat um die fehlenden Fälle und lege Schema und BCrypt-Bean an."
 // Standalone-Test mit Hilfs-Controller, daher keine Datenbank noetig
 class GlobalExceptionHandlerTest {
 

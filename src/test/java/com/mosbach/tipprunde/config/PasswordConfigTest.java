@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+// KI-Log MA-03 "Ergänze das Fehlerformat um die fehlenden Fälle und lege Schema und BCrypt-Bean an."
 class PasswordConfigTest {
 
 	private final PasswordEncoder encoder = new PasswordConfig().passwordEncoder();

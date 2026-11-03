@@ -25,6 +25,7 @@ import com.mosbach.tipprunde.security.CurrentUserIdArgumentResolver;
 import com.mosbach.tipprunde.security.GroupAccess;
 import com.mosbach.tipprunde.security.Membership;
 
+// KI-Log MA-20 "Rangliste im Format des API-Designs mit Tests, passend zu web #52."
 // Standalone-Test mit Platzhaltern, daher keine Datenbank nötig
 class RankingControllerTest {
 

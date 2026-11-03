@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import com.mosbach.tipprunde.model.ranking.MemberScore;
 import com.mosbach.tipprunde.model.ranking.RankingEntry;
 
+// KI-Log MA-20 "Rangliste im Format des API-Designs mit Tests, passend zu web #52."
 class RankingRulesTest {
 
     private static MemberScore score(long id, String name, int points) {

@@ -1,3 +1,4 @@
+-- KI-Log MA-20 "Rangliste im Format des API-Designs mit Tests, passend zu web #52."
 -- Raeumt die Testdaten der Rangliste (Gruppe "TEST Rangliste", Konten TEST_rang_a bis TEST_rang_e) wieder weg.
 -- Loescht nur Daten mit dem Praefix TEST. Mitgliedschaften und Tipps verschwinden per Kaskade mit.
 

@@ -1,3 +1,4 @@
+# KI-Log MA-06 "Token zentral für alle geschützten Pfade prüfen, Nutzer-ID nur aus dem Token."
 # Alle bisherigen Endpunkte mit Fehlerfällen (VS Code, REST Client).
 # Grundlage für die Abnahmetests (Testliste Anhang 3). Backend und Datenbank müssen laufen.
 # Der Ablauf geht von oben nach unten: Fall 2 legt einen Nutzer an, Fall 7 loggt ihn ein,

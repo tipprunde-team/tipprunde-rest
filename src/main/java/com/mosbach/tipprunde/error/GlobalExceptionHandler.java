@@ -31,6 +31,7 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    // KI-Log MA-13 "Logging für fehlgeschlagene Logins und abgelehnte Zugriffe ohne Geheimnisse bauen."
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ErrorResponse> handleApiException(ApiException ex, HttpServletRequest request) {
         // Abgelehnte Zugriffe (401, 403) sichtbar machen: Pfad ohne Query-String, nie Token, Passwort oder Body
@@ -42,6 +43,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ex.getStatus()).body(ErrorResponse.of(ex.getCode(), ex.getMessage()));
     }
 
+    // KI-Log MA-03 "Ergänze das Fehlerformat um die fehlenden Fälle und lege Schema und BCrypt-Bean an."
     // @Valid-Prüfung fehlgeschlagen, z. B. leere oder ungültige E-Mail
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
@@ -77,6 +79,7 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of("VALIDATION_ERROR", "Ein Parameter fehlt oder hat das falsche Format."));
     }
 
+    // KI-Log MA-03 "Ergänze das Fehlerformat um die fehlenden Fälle und lege Schema und BCrypt-Bean an."
     // Unbekannter Pfad
     @ExceptionHandler({ NoResourceFoundException.class, NoHandlerFoundException.class })
     public ResponseEntity<ErrorResponse> handleNotFound(Exception ex) {
@@ -84,6 +87,7 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of("NOT_FOUND", "Der Pfad existiert nicht."));
     }
 
+    // KI-Log MA-03 "Ergänze das Fehlerformat um die fehlenden Fälle und lege Schema und BCrypt-Bean an."
     // Ohne diese beiden Handler würden 405 und 415 als 500 erscheinen
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
@@ -91,12 +95,14 @@ public class GlobalExceptionHandler {
                 .body(ErrorResponse.of("METHOD_NOT_ALLOWED", "Diese HTTP-Methode ist hier nicht erlaubt."));
     }
 
+    // KI-Log MA-03 "Ergänze das Fehlerformat um die fehlenden Fälle und lege Schema und BCrypt-Bean an."
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleUnsupportedMediaType(HttpMediaTypeNotSupportedException ex) {
         return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
                 .body(ErrorResponse.of("UNSUPPORTED_MEDIA_TYPE", "Bitte Content-Type application/json verwenden."));
     }
 
+    // KI-Log MA-03 "Ergänze das Fehlerformat um die fehlenden Fälle und lege Schema und BCrypt-Bean an."
     // Alles andere: Details nur ins Log, nie nach außen (kein Passwort, kein Token loggen)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {

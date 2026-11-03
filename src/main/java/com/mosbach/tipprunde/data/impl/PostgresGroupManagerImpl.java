@@ -25,6 +25,9 @@ import com.mosbach.tipprunde.model.group.InvitePreview;
 import com.mosbach.tipprunde.model.group.Member;
 import com.mosbach.tipprunde.security.Membership;
 
+// KI-Log MA-07 "Gruppen-Endpunkte mit zentraler Mitgliedschaftsprüfung und Tests nach Plan umsetzen."
+// KI-Log MA-08 "Beitritt per Code mit Obergrenze 200, sicher bei gleichzeitigen Beitritten."
+// KI-Log MA-13 "Logging für fehlgeschlagene Logins und abgelehnte Zugriffe ohne Geheimnisse bauen."
 // Gruppen in den Tabellen groups und group_members, alle Abfragen mit PreparedStatement
 @Component
 public class PostgresGroupManagerImpl implements GroupManager {

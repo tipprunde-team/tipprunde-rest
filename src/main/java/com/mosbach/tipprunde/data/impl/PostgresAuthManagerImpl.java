@@ -29,6 +29,7 @@ import com.mosbach.tipprunde.security.LogMasking;
 @ConditionalOnProperty(name = "app.auth.manager", havingValue = "postgres")
 public class PostgresAuthManagerImpl implements AuthManager {
 
+    // KI-Log MA-13 "Logging für fehlgeschlagene Logins und abgelehnte Zugriffe ohne Geheimnisse bauen."
     private static final Logger log = LoggerFactory.getLogger(PostgresAuthManagerImpl.class);
 
     private static final String SQL_FIND_USER =

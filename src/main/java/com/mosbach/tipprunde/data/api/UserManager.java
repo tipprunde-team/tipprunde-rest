@@ -4,6 +4,7 @@ import com.mosbach.tipprunde.model.user.RegisterRequest;
 import com.mosbach.tipprunde.model.user.UserProfileResponse;
 import com.mosbach.tipprunde.model.user.UserResponse;
 
+// KI-Log MA-05 "Registrierung mit Passwort-Hash, Fehlercodes und Tests umsetzen."
 // Registrierung und Profil
 public interface UserManager {
 

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mosbach.tipprunde.data.api.GroupManager;
 import com.mosbach.tipprunde.model.group.InvitePreview;
 
+// KI-Log MA-08 "Beitritt per Code mit Obergrenze 200, sicher bei gleichzeitigen Beitritten."
 // Einladungsvorschau ohne Anmeldung (Ausnahme im AuthInterceptor), damit die Beitrittsseite vor dem Login etwas anzeigen kann
 @RestController
 @RequestMapping("/api/invites")

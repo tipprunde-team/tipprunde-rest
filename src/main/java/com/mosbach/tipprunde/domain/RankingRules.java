@@ -8,6 +8,7 @@ import java.util.Locale;
 import com.mosbach.tipprunde.model.ranking.MemberScore;
 import com.mosbach.tipprunde.model.ranking.RankingEntry;
 
+// KI-Log MA-20 "Rangliste im Format des API-Designs mit Tests, passend zu web #52."
 // Rangregel der Rangliste ohne Datenbank: gleiche Punkte bekommen gleichen Rang, danach wird übersprungen (1, 2, 2, 4)
 public final class RankingRules {
 

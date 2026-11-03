@@ -1,3 +1,4 @@
+# KI-Log MA-03 "Ergänze das Fehlerformat um die fehlenden Fälle und lege Schema und BCrypt-Bean an."
 # REST Client (VS Code): Fehlerformat
 # Alle Fehler muessen im Format {"error":{"code":"...","message":"..."}} kommen.
 # Backend vorher starten.

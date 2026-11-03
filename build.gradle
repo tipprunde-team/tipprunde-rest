@@ -41,6 +41,7 @@ tasks.named('test') {
 	finalizedBy tasks.named('jacocoTestReport')
 }
 
+// KI-Log MA-14 "JaCoCo einbauen und den Ausgangswert messen."
 // Testabdeckung: build/reports/jacoco/test/html/index.html (Qualitätsmetrik)
 tasks.named('jacocoTestReport') {
 	dependsOn tasks.named('test')
