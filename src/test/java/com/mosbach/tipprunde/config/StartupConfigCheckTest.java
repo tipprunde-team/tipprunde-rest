@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+// KI-Log MG-31 "Tests ohne Spring-Kontext schreiben."
 // Pure checks without Spring context and database, so they run in the CI
 class StartupConfigCheckTest {
 
