@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import com.mosbach.tipprunde.model.auth.TokenAnswer;
 
+// KI-Log AH-02
 // Login, Logout und Token-Prüfung
 public interface AuthManager {
 

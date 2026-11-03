@@ -24,6 +24,7 @@ import com.mosbach.tipprunde.model.match.MatchUpdate;
 import com.mosbach.tipprunde.model.match.UpsertResult;
 import com.mosbach.tipprunde.model.match.UpsertResult.Outcome;
 
+// KI-Log AH-15, AH-16
 // Übernimmt Spiele aus der Queue in die Tabelle matches; Schlüssel ist external_id (wie das Seed-Skript).
 // In derselben Transaktion werden die Punkte der Tipps gesetzt (US-24), Spiel und Punkte passen also immer zusammen.
 @Component

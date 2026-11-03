@@ -18,6 +18,7 @@ import com.mosbach.tipprunde.data.api.MatchManager;
 import com.mosbach.tipprunde.model.match.Match;
 import com.mosbach.tipprunde.model.match.MatchStatus;
 
+// KI-Log AH-07
 // Matches from table matches, active with app.match.manager=postgres
 @Component
 @ConditionalOnProperty(name = "app.match.manager", havingValue = "postgres")

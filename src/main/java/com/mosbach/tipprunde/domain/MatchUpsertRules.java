@@ -7,6 +7,7 @@ import com.mosbach.tipprunde.model.match.MatchStatus;
 import com.mosbach.tipprunde.model.match.MatchUpdate;
 import com.mosbach.tipprunde.model.match.UpsertResult.Outcome;
 
+// KI-Log AH-15, AH-16
 // Reine Regeln für die idempotente Übernahme von Spielen aus der Queue (Idempotent Receiver)
 public final class MatchUpsertRules {
 

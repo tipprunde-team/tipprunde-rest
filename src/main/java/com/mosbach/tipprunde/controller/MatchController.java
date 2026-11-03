@@ -28,6 +28,7 @@ import com.mosbach.tipprunde.model.tip.Tip;
 import com.mosbach.tipprunde.security.CurrentUserId;
 import com.mosbach.tipprunde.security.GroupAccess;
 
+// KI-Log AH-07
 // Matchday of a group with lock state and own tip (US-17, UC-01)
 @RestController
 @RequestMapping("/api/groups/{groupId}/matches")

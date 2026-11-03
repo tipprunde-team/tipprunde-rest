@@ -14,6 +14,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
+// KI-Log AH-02
 // Erstellt und prüft JWTs (HS256), Secret aus JWT_SECRET
 @Service
 public class JwtService {

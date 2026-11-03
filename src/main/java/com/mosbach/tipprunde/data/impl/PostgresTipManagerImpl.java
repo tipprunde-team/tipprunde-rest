@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import com.mosbach.tipprunde.data.api.TipManager;
 import com.mosbach.tipprunde.model.tip.Tip;
 
+// KI-Log AH-08
 // Tips in table tips, PreparedStatement only
 @Component
 public class PostgresTipManagerImpl implements TipManager {
