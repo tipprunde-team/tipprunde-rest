@@ -1,3 +1,4 @@
+# KI-Log NS-05 "AT-02 als REST-Client-Datei gegen Live."
 # Abnahmetests UC-02 online (AT-02-01 bis AT-02-08, AT-02-11, AT-02-12) gegen Heroku
 # Konten A (Admin), B (Mitglied), C (kein Mitglied), D (Rolle manipuliert) werden bei jedem Durchlauf neu angelegt
 # Testdaten mit Präfix TEST; Aufräumen danach mit abnahme-uc02-obergrenze.sql (Teil B)

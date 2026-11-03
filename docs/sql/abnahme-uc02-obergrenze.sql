@@ -1,3 +1,4 @@
+-- KI-Log NS-05 "AT-02 als REST-Client-Datei gegen Live."
 -- AT-02-10 Obergrenze 200 Mitglieder (FA-23.1), Testdaten für die gemeinsame Datenbank
 -- Ablauf: Teil A ausführen, dann die zwei Beitritte in abnahme-uc02.http senden, danach sofort Teil B
 -- Alles mit Präfix TEST; die Testkonten haben keinen gültigen Passwort-Hash und können sich nicht anmelden
