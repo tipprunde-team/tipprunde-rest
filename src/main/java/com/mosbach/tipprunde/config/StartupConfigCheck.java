@@ -14,6 +14,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+// KI-Log MG-30 "Fehlende Variablen klar melden."
 // Checks the configuration right at startup, so a wrong DB_URL does not only show up at the first login
 @Component
 public class StartupConfigCheck implements ApplicationRunner {
