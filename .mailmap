@@ -1,0 +1,8 @@
+# Einheitliche Namen und Adressen in git log und git shortlog
+# (GitHub selbst wertet die Datei nicht aus)
+Niklas Schusser <nik.schusser.25@lehre.mosbach.dhbw.de> <niklasschusser@gmail.com>
+Niklas Schusser <nik.schusser.25@lehre.mosbach.dhbw.de> <nik.schusser.25@lehre.mosbach.dhbw.de>
+Arlind Hulaj <arl.hulaj.25@lehre.mosbach.dhbw.de> <arl.hulaj.25@lehre.mosbach.dhbw.de>
+Arlind Hulaj <arl.hulaj.25@lehre.mosbach.dhbw.de> <a.hulaj@fis-gmbh.de>
+Max Schamberger <m.sch.hoh@gmail.com> <m.sch.hoh@gmail.com>
+Maximilian Göllnitz <maximiliangoellnitz@gmail.com> <maximiliangoellnitz@gmail.com>
