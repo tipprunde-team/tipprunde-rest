@@ -10,6 +10,7 @@ import com.mosbach.tipprunde.model.user.UserProfileResponse;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
+// KI-Log MA-06 "Token zentral für alle geschützten Pfade prüfen, Nutzer-ID nur aus dem Token."
 // Das JSON-Feld muss exakt isSystemAdmin heißen (Vertrag mit dem Frontend)
 class UserProfileResponseTest {
 

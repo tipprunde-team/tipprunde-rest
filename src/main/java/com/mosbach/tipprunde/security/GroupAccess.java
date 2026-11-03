@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.mosbach.tipprunde.error.ApiException;
 
+// KI-Log MA-07 "Gruppen-Endpunkte mit zentraler Mitgliedschaftsprüfung und Tests nach Plan umsetzen."
 // Zentrale Prüfung von Mitgliedschaft und Admin-Rolle, wird von jedem /api/groups/{groupId}/**-Endpunkt benutzt
 @Component
 public class GroupAccess {

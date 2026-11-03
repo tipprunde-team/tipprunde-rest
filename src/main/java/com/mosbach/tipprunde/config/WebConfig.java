@@ -12,7 +12,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import com.mosbach.tipprunde.security.AuthInterceptor;
 import com.mosbach.tipprunde.security.CurrentUserIdArgumentResolver;
 
-// KI-Log #1: CORS fuer das lokale Frontend
+// KI-Log MA-02 "Baue das Spring-Boot-Grundgerüst mit DB-Verbindung über Umgebungsvariablen, CORS und /api/ping."
+// KI-Log MA-06 "Token zentral für alle geschützten Pfade prüfen, Nutzer-ID nur aus dem Token."
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 

@@ -23,6 +23,7 @@ import com.mosbach.tipprunde.security.LogMasking;
 @ConditionalOnProperty(name = "app.auth.manager", havingValue = "dummy", matchIfMissing = true)
 public class DummyAuthManagerImpl implements AuthManager {
 
+    // KI-Log MA-13 "Logging für fehlgeschlagene Logins und abgelehnte Zugriffe ohne Geheimnisse bauen."
     private static final Logger log = LoggerFactory.getLogger(DummyAuthManagerImpl.class);
 
     private static final long TEST_USER_ID = 1L;

@@ -10,6 +10,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 import com.mosbach.tipprunde.error.ApiException;
 
+// KI-Log MA-06 "Token zentral für alle geschützten Pfade prüfen, Nutzer-ID nur aus dem Token."
 // Gibt @CurrentUserId-Parametern die Nutzer-ID, die der AuthInterceptor abgelegt hat
 public class CurrentUserIdArgumentResolver implements HandlerMethodArgumentResolver {
 

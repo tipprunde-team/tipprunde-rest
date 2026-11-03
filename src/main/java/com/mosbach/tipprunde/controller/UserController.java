@@ -16,6 +16,8 @@ import com.mosbach.tipprunde.security.CurrentUserId;
 
 import jakarta.validation.Valid;
 
+// KI-Log MA-05 "Registrierung mit Passwort-Hash, Fehlercodes und Tests umsetzen."
+// KI-Log MA-06 "Token zentral für alle geschützten Pfade prüfen, Nutzer-ID nur aus dem Token."
 // Registrierung (ohne Token) und eigenes Profil (mit Token) unter /api/users
 @RestController
 @RequestMapping("/api/users")

@@ -19,6 +19,7 @@ import com.mosbach.tipprunde.error.ApiException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+// KI-Log MA-06 "Token zentral für alle geschützten Pfade prüfen, Nutzer-ID nur aus dem Token."
 // Prüft bei allen geschützten Endpunkten das Bearer-Token und legt die userId als Request-Attribut ab
 @Component
 public class AuthInterceptor implements HandlerInterceptor {

@@ -24,6 +24,7 @@ import com.mosbach.tipprunde.data.api.AuthManager;
 import com.mosbach.tipprunde.error.GlobalExceptionHandler;
 import com.mosbach.tipprunde.model.auth.TokenAnswer;
 
+// KI-Log MA-06 "Token zentral für alle geschützten Pfade prüfen, Nutzer-ID nur aus dem Token."
 // Standalone-Test mit Hilfs-Controller und Platzhalter-Manager, daher keine Datenbank nötig
 class AuthInterceptorTest {
 

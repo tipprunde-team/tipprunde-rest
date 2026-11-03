@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+// KI-Log MA-07 "Gruppen-Endpunkte mit zentraler Mitgliedschaftsprüfung und Tests nach Plan umsetzen."
 // Antwort auf GET /api/groups/{groupId}, inviteCode steht nur für Admins drin (sonst fehlt das Feld)
 public record GroupDetails(
         long id,

@@ -1,3 +1,4 @@
+# KI-Log MA-20 "Rangliste im Format des API-Designs mit Tests, passend zu web #52."
 # Rangliste testen (VS Code, REST Client), Postman-Fälle 35 und 36. Backend und Datenbank müssen laufen.
 # Konten und Gruppe tragen den Präfix TEST. Beim zweiten Durchlauf antwortet Fall 1 mit 409, das ist erwartet.
 # Ablauf: Fall 1 bis 4 einmal senden, dann docs/sql/test-ranking.sql mit SqlRunner.java (oder pgAdmin) ausführen, dann Fall 35 ff.

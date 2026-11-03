@@ -16,6 +16,7 @@ import com.mosbach.tipprunde.domain.RankingRules;
 import com.mosbach.tipprunde.model.ranking.MemberScore;
 import com.mosbach.tipprunde.model.ranking.RankingEntry;
 
+// KI-Log MA-20 "Rangliste im Format des API-Designs mit Tests, passend zu web #52."
 // Punktesummen aus den Tabellen group_members, users und tips, die Rangvergabe macht RankingRules
 @Component
 public class PostgresRankingManagerImpl implements RankingManager {

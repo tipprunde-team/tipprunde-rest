@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+// KI-Log MA-07 "Gruppen-Endpunkte mit zentraler Mitgliedschaftsprüfung und Tests nach Plan umsetzen."
 class InviteCodeGeneratorTest {
 
     private final InviteCodeGenerator generator = new InviteCodeGenerator();

@@ -1,3 +1,4 @@
+-- KI-Log MA-03 "Ergänze das Fehlerformat um die fehlenden Fälle und lege Schema und BCrypt-Bean an."
 -- Datenbankschema v1 (PostgreSQL), idempotent, mehrfach ausfuehrbar
 -- Keine Token-Tabelle, weil die Anmeldung ueber JWT zustandslos ist.
 -- Ausfuehren manuell mit pgAdmin (siehe README), nicht automatisch beim Start.

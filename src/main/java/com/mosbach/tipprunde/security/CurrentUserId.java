@@ -6,6 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+// KI-Log MA-06 "Token zentral für alle geschützten Pfade prüfen, Nutzer-ID nur aus dem Token."
 // Markiert einen Controller-Parameter, der die Nutzer-ID aus dem geprüften Token bekommt
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)

@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 
 import com.mosbach.tipprunde.error.ApiException;
 
+// KI-Log MA-07 "Gruppen-Endpunkte mit zentraler Mitgliedschaftsprüfung und Tests nach Plan umsetzen."
 // Datenbank wird mit Mockito ersetzt, die Tests laufen also auch in der CI ohne aiven
 class GroupAccessTest {
 

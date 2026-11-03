@@ -1,3 +1,4 @@
+-- KI-Log MA-20 "Rangliste im Format des API-Designs mit Tests, passend zu web #52."
 -- Beispielpunkte für die Rangliste (Postman-Fälle 35 und 36), nur für Testkonten mit Präfix TEST.
 -- Voraussetzung: docs/rest-client/ranking.http Fall 1 bis 4 wurde gesendet, also existieren die Konten
 -- TEST_rang_a bis TEST_rang_d und die Gruppe "TEST Rangliste" mit allen vier als Mitglieder,

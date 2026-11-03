@@ -22,6 +22,7 @@ import org.mockito.ArgumentCaptor;
 
 import com.mosbach.tipprunde.model.ranking.RankingEntry;
 
+// KI-Log MA-20 "Rangliste im Format des API-Designs mit Tests, passend zu web #52."
 // Datenbank mit Mockito ersetzt: geprüft werden Parameter, SQL-Variante und die Rangvergabe auf den Ergebnissen
 class PostgresRankingManagerImplTest {
 

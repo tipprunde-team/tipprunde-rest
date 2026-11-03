@@ -15,6 +15,7 @@ import com.mosbach.tipprunde.model.ranking.RankingResponse;
 import com.mosbach.tipprunde.security.CurrentUserId;
 import com.mosbach.tipprunde.security.GroupAccess;
 
+// KI-Log MA-20 "Rangliste im Format des API-Designs mit Tests, passend zu web #52."
 // Rangliste einer Gruppe: gesamt oder je Spieltag (US-25, US-26), nur für Mitglieder
 @RestController
 @RequestMapping("/api/groups/{groupId}/ranking")

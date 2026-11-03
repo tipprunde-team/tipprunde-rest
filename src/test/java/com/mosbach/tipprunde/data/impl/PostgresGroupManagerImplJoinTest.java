@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import com.mosbach.tipprunde.error.ApiException;
 import com.mosbach.tipprunde.model.group.GroupSummary;
 
+// KI-Log MA-08 "Beitritt per Code mit Obergrenze 200, sicher bei gleichzeitigen Beitritten."
 // Ablauf des Beitritts mit gemockter Datenbank, läuft auch in der CI ohne aiven
 class PostgresGroupManagerImplJoinTest {
 

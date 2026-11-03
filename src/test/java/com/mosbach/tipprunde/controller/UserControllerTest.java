@@ -25,6 +25,8 @@ import com.mosbach.tipprunde.model.user.UserResponse;
 import com.mosbach.tipprunde.security.AuthInterceptor;
 import com.mosbach.tipprunde.security.CurrentUserIdArgumentResolver;
 
+// KI-Log MA-05 "Registrierung mit Passwort-Hash, Fehlercodes und Tests umsetzen."
+// KI-Log MA-06 "Token zentral für alle geschützten Pfade prüfen, Nutzer-ID nur aus dem Token."
 // Standalone-Test mit Platzhalter-Manager, daher keine Datenbank nötig
 class UserControllerTest {
 

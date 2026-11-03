@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 
 import org.springframework.stereotype.Component;
 
+// KI-Log MA-07 "Gruppen-Endpunkte mit zentraler Mitgliedschaftsprüfung und Tests nach Plan umsetzen."
 // Erzeugt Einladungscodes: 10 Zeichen aus einem URL-sicheren Alphabet ohne leicht verwechselbare Zeichen
 @Component
 public class InviteCodeGenerator {

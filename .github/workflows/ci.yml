@@ -46,6 +46,7 @@ jobs:
           path: build/reports/tests/test/
           retention-days: 14
 
+      # KI-Log MA-14 "JaCoCo einbauen und den Ausgangswert messen."
       # JaCoCo-Abdeckungsbericht als Artefakt (Qualitätsmetrik), auch bei Fehlern
       - name: Upload coverage report
         if: always()

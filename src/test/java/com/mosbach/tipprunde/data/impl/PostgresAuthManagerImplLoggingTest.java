@@ -29,6 +29,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 
+// KI-Log MA-13 "Logging für fehlgeschlagene Logins und abgelehnte Zugriffe ohne Geheimnisse bauen."
 // Login gegen eine gemockte Datenbank: Log enthält Grund und IDs, aber nie E-Mail, Passwort oder Token
 class PostgresAuthManagerImplLoggingTest {
 

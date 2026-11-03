@@ -23,6 +23,8 @@ import com.mosbach.tipprunde.security.Membership;
 
 import jakarta.validation.Valid;
 
+// KI-Log MA-07 "Gruppen-Endpunkte mit zentraler Mitgliedschaftsprüfung und Tests nach Plan umsetzen."
+// KI-Log MA-08 "Beitritt per Code mit Obergrenze 200, sicher bei gleichzeitigen Beitritten."
 // Tippgruppen anlegen und eigene Gruppen auflisten, beides nur mit Token
 @RestController
 @RequestMapping("/api/groups")

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+// KI-Log MA-05 "Registrierung mit Passwort-Hash, Fehlercodes und Tests umsetzen."
 // Request-Body für POST /api/users
 public record RegisterRequest(
         @NotBlank(message = "Bitte eine E-Mail-Adresse angeben.")
