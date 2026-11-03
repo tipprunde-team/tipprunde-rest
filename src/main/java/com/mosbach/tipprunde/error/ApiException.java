@@ -2,6 +2,7 @@ package com.mosbach.tipprunde.error;
 
 import org.springframework.http.HttpStatus;
 
+// KI-Log AH-02 "Übertrage den Prof-Login auf JWT im Header."
 // Fachlicher Fehler mit HTTP-Status und Fehlercode
 public class ApiException extends RuntimeException {
 

@@ -24,7 +24,8 @@ import com.mosbach.tipprunde.model.match.MatchUpdate;
 import com.mosbach.tipprunde.model.match.UpsertResult;
 import com.mosbach.tipprunde.model.match.UpsertResult.Outcome;
 
-// KI-Log AH-15, AH-16
+// KI-Log AH-15 "Übernimm Spiele aus der Queue so, dass ein doppeltes Event nichts doppelt schreibt."
+// KI-Log AH-16 "Berechne die Punkte der Tipps, sobald ein Spiel als beendet gemeldet wird."
 // Übernimmt Spiele aus der Queue in die Tabelle matches; Schlüssel ist external_id (wie das Seed-Skript).
 // In derselben Transaktion werden die Punkte der Tipps gesetzt (US-24), Spiel und Punkte passen also immer zusammen.
 @Component

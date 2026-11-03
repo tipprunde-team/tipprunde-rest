@@ -17,6 +17,7 @@ import com.mosbach.tipprunde.model.user.UserSummary;
 import com.mosbach.tipprunde.security.JwtService;
 import com.mosbach.tipprunde.security.LogMasking;
 
+// KI-Log AH-02 "Übertrage den Prof-Login auf JWT im Header."
 // Login gegen einen Testnutzer im Speicher, aktiv bei app.auth.manager=dummy
 @Component
 @ConditionalOnProperty(name = "app.auth.manager", havingValue = "dummy", matchIfMissing = true)
@@ -32,6 +33,7 @@ public class DummyAuthManagerImpl implements AuthManager {
     private final PasswordEncoder passwordEncoder;
     private final String testPasswordHash;
 
+    // KI-Log AH-03 "Login gegen users mit BCrypt und Tests."
     // PasswordEncoder kommt als Bean aus PasswordConfig
     public DummyAuthManagerImpl(JwtService jwtService, PasswordEncoder passwordEncoder) {
         this.jwtService = jwtService;

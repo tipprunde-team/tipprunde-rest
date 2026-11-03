@@ -2,6 +2,7 @@ package com.mosbach.tipprunde.model.match;
 
 import java.time.Instant;
 
+// KI-Log AH-01 "Leite Modellklassen aus der API-Antwort ab."
 // Spiel, entspricht Tabelle matches; Zeiten in UTC
 public record Match(
         Long id,

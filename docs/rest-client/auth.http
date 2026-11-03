@@ -1,3 +1,4 @@
+# KI-Log AH-02 "Übertrage den Prof-Login auf JWT im Header."
 # Login und Logout testen (Backend vorher starten)
 # Das Passwort des Testkontos steht nicht im Repo: Windows-Variable TEST_PASSWORD (siehe README)
 @baseUrl = http://localhost:8080/api

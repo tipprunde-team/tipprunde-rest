@@ -1,3 +1,4 @@
+# KI-Log AH-10 "REST-Client-Dateien für die Online-Abnahme."
 # Abnahmetests UC-01 online, Ergänzung zu online.http (AT-01-03, -04, -09, -12, -13)
 # Das Passwort des Testkontos steht nicht im Repo: Windows-Variable TEST_PASSWORD (siehe README)
 # Konto A ist das Testkonto tester. Konto B wird bei jedem Durchlauf neu angelegt und tritt

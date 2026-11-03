@@ -17,7 +17,8 @@ import org.springframework.stereotype.Component;
 import com.mosbach.tipprunde.data.api.TipManager;
 import com.mosbach.tipprunde.model.tip.Tip;
 
-// KI-Log AH-08
+// KI-Log AH-07 "Baue GET …/matches mit Sperre und Heroku-Setup."
+// KI-Log AH-08 "PUT …/tip mit Prüfreihenfolge und Tests."
 // Tips in table tips, PreparedStatement only
 @Component
 public class PostgresTipManagerImpl implements TipManager {

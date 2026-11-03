@@ -1,3 +1,4 @@
+# KI-Log AH-10 "REST-Client-Dateien für die Online-Abnahme."
 # Online-Tests gegen Heroku (VS Code, REST Client), Fälle 26 bis 33 der Testliste
 # Das Passwort des Testkontos steht nicht im Repo: Windows-Variable TEST_PASSWORD (siehe README)
 # Live-URL aus dem Heroku-Dashboard (Open app), ohne / am Ende.

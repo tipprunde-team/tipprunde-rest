@@ -30,6 +30,7 @@ import com.mosbach.tipprunde.security.CurrentUserIdArgumentResolver;
 import com.mosbach.tipprunde.security.GroupAccess;
 import com.mosbach.tipprunde.security.Membership;
 
+// KI-Log AH-07 "Baue GET …/matches mit Sperre und Heroku-Setup."
 // Standalone test with fakes and a fixed clock, no database needed
 class MatchControllerTest {
 

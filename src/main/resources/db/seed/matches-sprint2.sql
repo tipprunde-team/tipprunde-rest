@@ -1,4 +1,4 @@
--- KI-Log AH-07
+-- KI-Log AH-07 "Baue GET …/matches mit Sperre und Heroku-Setup."
 -- SUPERSEDED (Sprint 3, F-AH-2): matches now come from tipprunde-matches via the queue tipprunde.match-events.
 -- Kept only for local tests without the queue; do not run it against aiven any more.
 -- Transitional seed until the match service exists (Sprint 3).

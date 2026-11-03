@@ -25,7 +25,7 @@ import com.mosbach.tipprunde.security.CurrentUserId;
 import com.mosbach.tipprunde.security.GroupAccess;
 import com.mosbach.tipprunde.security.Membership;
 
-// KI-Log AH-08
+// KI-Log AH-08 "PUT …/tip mit Prüfreihenfolge und Tests."
 // Submit or change a tip until kickoff (US-20, US-21, UC-01)
 @RestController
 @RequestMapping("/api/groups/{groupId}/matches/{matchId}/tip")

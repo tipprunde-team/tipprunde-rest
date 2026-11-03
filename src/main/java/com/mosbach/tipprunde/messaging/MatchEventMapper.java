@@ -3,7 +3,7 @@ package com.mosbach.tipprunde.messaging;
 import com.mosbach.tipprunde.model.match.MatchStatus;
 import com.mosbach.tipprunde.model.match.MatchUpdate;
 
-// KI-Log AH-15
+// KI-Log AH-15 "Übernimm Spiele aus der Queue so, dass ein doppeltes Event nichts doppelt schreibt."
 // Prüft ein Event und bildet es auf MatchUpdate ab; ungültige Events werden abgelehnt statt halb gespeichert
 public final class MatchEventMapper {
 

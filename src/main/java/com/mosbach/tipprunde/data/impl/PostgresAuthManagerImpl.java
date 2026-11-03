@@ -23,7 +23,7 @@ import com.mosbach.tipprunde.model.user.UserSummary;
 import com.mosbach.tipprunde.security.JwtService;
 import com.mosbach.tipprunde.security.LogMasking;
 
-// KI-Log AH-03
+// KI-Log AH-03 "Login gegen users mit BCrypt und Tests."
 // Login gegen die Tabelle users, aktiv bei app.auth.manager=postgres
 @Component
 @ConditionalOnProperty(name = "app.auth.manager", havingValue = "postgres")

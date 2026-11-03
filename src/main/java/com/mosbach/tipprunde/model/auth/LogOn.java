@@ -8,6 +8,7 @@ import jakarta.validation.constraints.Size;
 
 // Request-Body für POST /api/auth
 public record LogOn(
+        // KI-Log AH-03 "Login gegen users mit BCrypt und Tests."
         @NotBlank(message = "Bitte eine E-Mail-Adresse angeben.")
         @Email(message = "Die E-Mail-Adresse ist ungültig.")
         @Size(max = 254, message = "Die E-Mail-Adresse darf höchstens 254 Zeichen lang sein.")

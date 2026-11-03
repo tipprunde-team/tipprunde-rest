@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import com.mosbach.tipprunde.model.auth.TokenAnswer;
 
-// KI-Log AH-02
+// KI-Log AH-02 "Übertrage den Prof-Login auf JWT im Header."
 // Login, Logout und Token-Prüfung
 public interface AuthManager {
 

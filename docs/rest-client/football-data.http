@@ -1,3 +1,4 @@
+# KI-Log AH-01 "Leite Modellklassen aus der API-Antwort ab."
 # Testaufrufe football-data.org (Token aus Umgebungsvariable)
 @baseUrl = https://api.football-data.org/v4
 @token = {{$processEnv FOOTBALL_DATA_TOKEN}}

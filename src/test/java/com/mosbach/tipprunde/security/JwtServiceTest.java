@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 
+// KI-Log AH-03 "Login gegen users mit BCrypt und Tests."
 // Unit-Test ohne Spring: Token erstellen und prüfen
 class JwtServiceTest {
 
@@ -58,6 +59,7 @@ class JwtServiceTest {
         assertTrue(jwtService.verify(forged).isEmpty());
     }
 
+    // KI-Log AH-11 "Schreibe 4.3.6 und 4.3.8 mit Belegen."
     @Test
     void lastBase64urlCharacterOfSignatureCarriesPaddingBits() {
         // Warum der alte Manipulations-Test manchmal fehlschlug: Die HMAC-SHA256-Signatur hat 32 Byte, also 43

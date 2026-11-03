@@ -1,6 +1,6 @@
 package com.mosbach.tipprunde.domain;
 
-// KI-Log AH-16
+// KI-Log AH-16 "Berechne die Punkte der Tipps, sobald ein Spiel als beendet gemeldet wird."
 // Punkteschema FA-41 bis FA-44 als reine Funktion, gewertet wird das Ergebnis nach 90 Minuten (FA-40)
 public final class PointsCalculator {
 

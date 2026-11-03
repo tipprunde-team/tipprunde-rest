@@ -1,3 +1,4 @@
+-- KI-Log AH-03 "Login gegen users mit BCrypt und Tests."
 -- Testnutzer für den Login gegen die Datenbank
 -- E-Mail test@tippseite.de, Benutzername tester; der Hash gehört zu einem alten Startpasswort.
 -- Das aktuelle Passwort steht nicht im Repo, es wird nur privat im Team weitergegeben.
