@@ -14,6 +14,7 @@ import com.mosbach.tipprunde.data.api.MatchSyncManager;
 import com.mosbach.tipprunde.model.match.UpsertResult;
 import com.mosbach.tipprunde.model.match.UpsertResult.Outcome;
 
+// KI-Log AH-15 "Übernimm Spiele aus der Queue so, dass ein doppeltes Event nichts doppelt schreibt."
 // Verdrahtung ohne echte Queue: Empfang nur mit QUEUE_URL und Postgres, amqps-URL wird mit TLS gelesen
 class MessagingConfigTest {
 

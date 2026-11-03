@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import com.mosbach.tipprunde.model.tip.Tip;
 
+// KI-Log AH-07 "Baue GET …/matches mit Sperre und Heroku-Setup."
 // One match in the matchday response, including the caller's own tip
 public record MatchEntry(
         long id,

@@ -1,5 +1,6 @@
 package com.mosbach.tipprunde.model.match;
 
+// KI-Log AH-01 "Leite Modellklassen aus der API-Antwort ab."
 // Spielstatus, unabhängig von football-data.org
 public enum MatchStatus {
     UPCOMING,

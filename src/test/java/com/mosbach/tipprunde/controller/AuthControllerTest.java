@@ -27,6 +27,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 
+// KI-Log AH-03 "Login gegen users mit BCrypt und Tests."
 // Standalone-Test mit Platzhalter-Manager, daher keine Datenbank nötig
 class AuthControllerTest {
 

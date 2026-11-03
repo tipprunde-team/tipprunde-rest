@@ -21,6 +21,7 @@ import com.mosbach.tipprunde.model.match.UpsertResult.Outcome;
 
 import tools.jackson.databind.json.JsonMapper;
 
+// KI-Log AH-15 "Übernimm Spiele aus der Queue so, dass ein doppeltes Event nichts doppelt schreibt."
 // Events genau im Format des Match-Service (Vertrag D.2) ohne Queue und ohne Datenbank verarbeiten
 class MatchEventListenerTest {
 

@@ -24,6 +24,7 @@ import com.mosbach.tipprunde.security.AuthInterceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+// KI-Log AH-02 "Übertrage den Prof-Login auf JWT im Header."
 // Wandelt Exceptions aller Controller in das einheitliche Fehlerformat um
 @RestControllerAdvice
 public class GlobalExceptionHandler {

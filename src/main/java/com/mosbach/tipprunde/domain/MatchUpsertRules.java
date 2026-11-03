@@ -7,6 +7,8 @@ import com.mosbach.tipprunde.model.match.MatchStatus;
 import com.mosbach.tipprunde.model.match.MatchUpdate;
 import com.mosbach.tipprunde.model.match.UpsertResult.Outcome;
 
+// KI-Log AH-15 "Übernimm Spiele aus der Queue so, dass ein doppeltes Event nichts doppelt schreibt."
+// KI-Log AH-16 "Berechne die Punkte der Tipps, sobald ein Spiel als beendet gemeldet wird."
 // Reine Regeln für die idempotente Übernahme von Spielen aus der Queue (Idempotent Receiver)
 public final class MatchUpsertRules {
 

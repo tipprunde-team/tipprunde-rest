@@ -15,6 +15,7 @@ import com.mosbach.tipprunde.model.match.UpsertResult;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
+// KI-Log AH-15 "Übernimm Spiele aus der Queue so, dass ein doppeltes Event nichts doppelt schreibt."
 // Liest MATCH_UPDATED aus der Queue und übernimmt das Spiel idempotent; aktiv nur mit QUEUE_URL und Postgres
 @Component
 @ConditionalOnExpression("!'${spring.rabbitmq.addresses:}'.isEmpty() and '${app.match.manager:postgres}' == 'postgres'")

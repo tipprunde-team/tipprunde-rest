@@ -1,3 +1,4 @@
+# KI-Log AH-10 "REST-Client-Dateien für die Online-Abnahme."
 # Abnahmetests UC-01 online, Ergänzung zu online.http (AT-01-03, -04, -09, -12, -13)
 # Das Passwort des Testkontos steht nicht im Repo: Windows-Variable TEST_PASSWORD (siehe README)
 # Konto A ist das Testkonto tester. Konto B wird bei jedem Durchlauf neu angelegt und tritt
@@ -66,7 +67,7 @@ Content-Type: application/json
 {
   "email": "test-at-{{$randomInt 100000 999999}}@example.de",
   "username": "TEST_at_{{$randomInt 100000 999999}}",
-  "password": "Geheim123"
+  "password": "{{$processEnv TEST_PASSWORD}}"
 }
 
 ### Vorbereitung 3: Konto B einloggen, erwartet 200 mit token
@@ -76,7 +77,7 @@ Content-Type: application/json
 
 {
   "email": "{{b.response.body.email}}",
-  "password": "Geheim123"
+  "password": "{{$processEnv TEST_PASSWORD}}"
 }
 
 ### Vorbereitung 4: Konto B tritt der Testgruppe bei, erwartet 200 mit role MEMBER

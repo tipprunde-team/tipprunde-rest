@@ -1,3 +1,4 @@
+# KI-Log AH-08 "PUT …/tip mit Prüfreihenfolge und Tests."
 # Tipp abgeben und ändern (US-20, US-21), Fälle 26 bis 32 der Testliste (Projektplan Anhang 2)
 # Das Passwort des Testkontos steht nicht im Repo: Windows-Variable TEST_PASSWORD (siehe README)
 # Vorher: Backend starten, Seed und test-group.sql auf aiven ausgeführt.

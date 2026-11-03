@@ -35,6 +35,7 @@ import com.mosbach.tipprunde.security.CurrentUserIdArgumentResolver;
 import com.mosbach.tipprunde.security.GroupAccess;
 import com.mosbach.tipprunde.security.Membership;
 
+// KI-Log AH-08 "PUT …/tip mit Prüfreihenfolge und Tests."
 // Web slice test for PUT .../tip with fakes and a fixed clock, no database needed
 class TipControllerTest {
 

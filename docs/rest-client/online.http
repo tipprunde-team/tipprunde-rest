@@ -1,3 +1,4 @@
+# KI-Log AH-10 "REST-Client-Dateien für die Online-Abnahme."
 # Online-Tests gegen Heroku (VS Code, REST Client), Fälle 26 bis 33 der Testliste
 # Das Passwort des Testkontos steht nicht im Repo: Windows-Variable TEST_PASSWORD (siehe README)
 # Live-URL aus dem Heroku-Dashboard (Open app), ohne / am Ende.
@@ -112,7 +113,7 @@ Content-Type: application/json
 {
   "email": "test-online-{{$randomInt 100000 999999}}@example.de",
   "username": "TEST_online_{{$randomInt 100000 999999}}",
-  "password": "Geheim123"
+  "password": "{{$processEnv TEST_PASSWORD}}"
 }
 
 ### 31b Zweites Konto einloggen, erwartet 200 mit token
@@ -122,7 +123,7 @@ Content-Type: application/json
 
 {
   "email": "{{other.response.body.email}}",
-  "password": "Geheim123"
+  "password": "{{$processEnv TEST_PASSWORD}}"
 }
 
 ### 31 Tipp in einer fremden Gruppe, erwartet 403 NOT_A_MEMBER

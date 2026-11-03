@@ -1,3 +1,4 @@
+# KI-Log AH-07 "Baue GET …/matches mit Sperre und Heroku-Setup."
 # Spieltag einer Gruppe testen (US-17). Vorher: Backend starten, Seed und test-group.sql auf aiven ausgeführt.
 # Das Passwort des Testkontos steht nicht im Repo: Windows-Variable TEST_PASSWORD (siehe README)
 # groupId aus der letzten Abfrage von test-group.sql eintragen.
@@ -40,5 +41,6 @@ GET {{baseUrl}}/groups/{{groupId}}/matches
 ### 7 Nichtmitglied: mit einem zweiten Konto einloggen und Fall 1 wiederholen, erwartet 403 NOT_A_MEMBER
 
 ### 8 Spieltag mit beendeten Spielen (US-22, US-24), erwartet 200, result gesetzt und bei eigenen Tipps myPoints 4, 3, 2 oder 0
+# KI-Log AH-16 "Berechne die Punkte der Tipps, sobald ein Spiel als beendet gemeldet wird."
 GET {{baseUrl}}/groups/{{groupId}}/matches?matchday=7
 Authorization: Bearer {{login.response.body.token}}

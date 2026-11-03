@@ -19,6 +19,7 @@ import com.mosbach.tipprunde.model.auth.TokenAnswer;
 
 import jakarta.validation.Valid;
 
+// KI-Log AH-02 "Übertrage den Prof-Login auf JWT im Header."
 // Login (POST) und Logout (DELETE) unter /api/auth
 @RestController
 @RequestMapping("/api/auth")

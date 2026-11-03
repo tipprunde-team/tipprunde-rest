@@ -1,3 +1,4 @@
+-- KI-Log AH-07 "Baue GET …/matches mit Sperre und Heroku-Setup."
 -- Local test group until the group endpoints (US-08, US-09) are merged
 -- Needs test-user.sql (tester) and the seed matches-sprint2.sql
 -- Idempotent: safe to run several times; prefix "TEST Arlind" as agreed for the shared database

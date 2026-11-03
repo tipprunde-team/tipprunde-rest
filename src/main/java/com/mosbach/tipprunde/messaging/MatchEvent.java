@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+// KI-Log AH-15 "Übernimm Spiele aus der Queue so, dass ein doppeltes Event nichts doppelt schreibt."
 // Event MATCH_UPDATED aus der Queue tipprunde.match-events (Vertrag aus dem Projektplan, Teil D.2)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record MatchEvent(

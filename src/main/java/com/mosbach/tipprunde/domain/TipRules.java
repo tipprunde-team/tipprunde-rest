@@ -9,6 +9,8 @@ import com.mosbach.tipprunde.model.match.Match;
 import com.mosbach.tipprunde.model.match.MatchStatus;
 import com.mosbach.tipprunde.security.Membership;
 
+// KI-Log AH-07 "Baue GET …/matches mit Sperre und Heroku-Setup."
+// KI-Log AH-08 "PUT …/tip mit Prüfreihenfolge und Tests."
 // Pure tip rules without database; server time is passed in (UC-01, US-20, US-21)
 public final class TipRules {
 

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+// KI-Log AH-16 "Berechne die Punkte der Tipps, sobald ein Spiel als beendet gemeldet wird."
 // Alle Beispiele aus US-24 und dem API-Design (Kap. 5.7), dazu Unentschieden, Auswärtssieg und 0:0
 class PointsCalculatorTest {
 
