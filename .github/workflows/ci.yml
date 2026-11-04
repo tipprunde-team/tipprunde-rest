@@ -1,3 +1,4 @@
+# KI-Log NS-02 "GitHub Actions für Build und Tests."
 name: CI
 
 # läuft bei Push auf main und bei jedem PR auf main
